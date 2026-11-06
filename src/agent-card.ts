@@ -10,7 +10,7 @@ export function registrationFile(settings: Settings) {
     type: "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
     name: "Pay Small Check",
     description:
-      `Checks an X vendor for a Nigerian buyer before they pay. Buys profile, posts, replies, follower, and complaint data through the buy gateway on Celo and returns Safe, Caution, or Risky. ERC-8021 attribution code: ${settings.attributionCode}.`,
+      `Checks an X vendor for a buyer before they pay. Buys profile, posts, replies, follower, and complaint data through the buy gateway on Celo and returns Safe, Caution, or Risky. ERC-8021 attribution code: ${settings.attributionCode}.`,
     services: [
       { name: "web", endpoint: `${origin}/` },
       { name: "x402", endpoint: `${origin}/api/checks`, version: "2" },

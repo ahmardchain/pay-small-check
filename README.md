@@ -60,7 +60,7 @@ No wallet and no spend. Checked against the live deployment on 6 Nov 2026.
 
 ## Why it exists
 
-In Visa's Stay Secure study of Nigerian consumers, [reported by BusinessDay in June 2026](https://businessday.ng/companies/article/nigerians-turn-to-ai-for-shopping-while-demanding-stronger-fraud-protection-report/), 51% of respondents said they had been hit by a financial scam in the past year. Of those, 57% said it happened on social media, more than on websites, marketplaces, or shopping apps.
+The [Global State of Scams 2025](https://gasa.org/knowledge-base/blog/global-scams-on-the-rise-over-half-of-adults-worldwide-report-scam-encounters) report by the Global Anti-Scam Alliance and Feedzai surveyed 46,000 adults in 42 markets. 57% met a scam in the past year and 23% lost money, roughly [$442 billion in total](https://www.feedzai.com/blog/gasa-global-state-of-scams-report/). Shopping and purchase scams were the most common kind: 54% of victims were hit by one.
 
 Paying a vendor from X is usually a scroll and a hope. The complaints ("scam", "didn't deliver", "fake") sit in replies and mentions, and a new account with a bought following looks the same as a shop that has delivered for years.
 

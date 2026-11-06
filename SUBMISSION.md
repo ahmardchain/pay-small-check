@@ -26,7 +26,7 @@ A buyer who found a vendor on X pastes the handle and pays $0.08 on Celo. The ag
 
 ## Problem
 
-In Visa's Stay Secure study of Nigerian consumers ([BusinessDay, June 2026](https://businessday.ng/companies/article/nigerians-turn-to-ai-for-shopping-while-demanding-stronger-fraud-protection-report/)), 51% said they had been hit by a financial scam in the past year, and 57% of those said it happened on social media. Checking a vendor by hand means scrolling replies and guessing whether a follower count is real. Pay Small Check does that reading for the price of a few cents, before the money moves.
+The [Global State of Scams 2025](https://gasa.org/knowledge-base/blog/global-scams-on-the-rise-over-half-of-adults-worldwide-report-scam-encounters) report (Global Anti-Scam Alliance and Feedzai, 46,000 adults in 42 markets) found 57% met a scam in the past year, 23% lost money, roughly [$442 billion in total](https://www.feedzai.com/blog/gasa-global-state-of-scams-report/), and shopping scams were the most common kind, hitting 54% of victims. Checking a vendor by hand means scrolling replies and guessing whether a follower count is real. Pay Small Check does that reading for the price of a few cents, before the money moves.
 
 ## Services used (not owned by this project)
 
