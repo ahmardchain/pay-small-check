@@ -457,6 +457,7 @@ pay-small-check/
 - X and Instagram are the working channels. Facebook is not built: the choice is disabled, and `channel: "facebook"` returns `501`. `channel: "whatsapp"` returns `400`.
 - Instagram comments run only when the posts payload contains a shortcode. The 6 Nov 2026 quotes are $0.031 without that call and $0.038 with it.
 - Instagram username reads often have no join date. Unknown age is a warning, so that account is not marked Safe on age alone.
+- Instagram general search is not a complaint index. A result counts only when it names the account (`@handle`, the profile URL, or a multi-word display name) and uses complaint language. Anything else leaves complaint coverage unknown, and the verdict stays Caution.
 - cUSD cannot be an x402 payment on the hosted facilitator. It is a transfer.
 - x402 payments do not carry `celo_aac08e9358f3`. Use the PayTo address for those.
 - The complaint-search payload is whatever the gateway returns. A shape this app cannot read is a gap, not a clean bill of health.

@@ -100,7 +100,8 @@ function readAccount(record: Record<string, unknown>): AccountFacts | null {
     num(record.postsCount) ??
     num(record.media_count) ??
     nestedCount(record.edge_owner_to_timeline_media);
-  if (!handle || (followers === undefined && following === undefined && postsCount === undefined)) return null;
+  const sparseInstagramAccount = Boolean(handle && idOf(record) && typeof record.has_anonymous_profile_picture === "boolean");
+  if (!handle || (!sparseInstagramAccount && followers === undefined && following === undefined && postsCount === undefined)) return null;
   return {
     handle,
     displayName: text(record.name) ?? text(record.display_name) ?? text(record.full_name),
@@ -110,7 +111,8 @@ function readAccount(record: Record<string, unknown>): AccountFacts | null {
     following,
     postsCount,
     verified: bool(record.verified) ?? bool(record.is_blue_verified) ?? bool(record.isBlueVerified) ?? bool(record.is_verified),
-    defaultProfileImage: bool(record.default_profile_image) ?? bool(record.defaultProfileImage),
+    defaultProfileImage:
+      bool(record.default_profile_image) ?? bool(record.defaultProfileImage) ?? bool(record.has_anonymous_profile_picture),
     location: text(record.location),
     id: idOf(record),
   };
@@ -179,9 +181,9 @@ function readPost(record: Record<string, unknown>, host?: Record<string, unknown
     handle: author,
     text: body.slice(0, 500),
     createdAt: timeText(record.created_at) ?? timeText(record.createdAt) ?? timeText(record.taken_at),
-    likes: num(record.favorite_count) ?? num(record.like_count) ?? num(record.likes),
+    likes: num(record.favorite_count) ?? num(record.like_count) ?? num(record.comment_like_count) ?? num(record.likes),
     reposts: num(record.retweet_count) ?? num(record.repost_count) ?? num(record.reposts),
-    replies: num(record.reply_count) ?? num(record.comment_count) ?? num(record.replies),
+    replies: num(record.reply_count) ?? num(record.comment_count) ?? num(record.child_comment_count) ?? num(record.replies),
     url: explicitUrl ?? (shortcode ? `https://www.instagram.com/p/${shortcode}/` : undefined),
   };
 }
@@ -223,11 +225,25 @@ export function findInstagramShortcode(value: unknown): string | null {
   return visit(unwrapOutput(value), 0);
 }
 
+const INSTAGRAM_ITEM_KEYS = new Set(["posts", "followers", "mentions", "replies"]);
+
+function instagramItemList(unwrapped: unknown): unknown[] | null {
+  if (!isRecord(unwrapped)) return null;
+  const data = unwrapped.data;
+  if (isRecord(data) && Array.isArray(data.items)) return data.items;
+  if (Array.isArray(unwrapped.items)) return unwrapped.items;
+  return null;
+}
+
 /** Walk a provider payload and pull accounts and posts out of whatever shape it has. */
-export function parseProviderPayload(output: unknown): ParsedSlice {
+export function parseProviderPayload(output: unknown, instagramKey?: string): ParsedSlice {
   const accounts: AccountFacts[] = [];
   const posts: PostFacts[] = [];
-  let recognized = Array.isArray(output);
+  const unwrapped = unwrapOutput(output);
+  const itemsOnly = instagramKey !== undefined && INSTAGRAM_ITEM_KEYS.has(instagramKey);
+  const items = itemsOnly ? instagramItemList(unwrapped) : null;
+  const root = itemsOnly ? items : unwrapped;
+  let recognized = Array.isArray(root);
   const seen = new WeakSet<object>();
   let nodes = 0;
 
@@ -250,13 +266,15 @@ export function parseProviderPayload(output: unknown): ParsedSlice {
     const postSource = isRecord(value.legacy) ? value.legacy : value;
     const post = readPost(postSource, value);
     if (post) posts.push(post);
+    // Nested carousel captions are slides of the same post, not extra media.
+    if (post && (instagramKey === "posts" || instagramKey === "mentions")) return;
     for (const [key, child] of Object.entries(value)) {
       if (post && key === "caption") continue;
       visit(child, depth + 1);
     }
   };
 
-  visit(unwrapOutput(output), 0);
+  visit(root, 0);
   return {
     accounts: dedupeAccounts(accounts).slice(0, 40),
     posts: dedupePosts(posts).slice(0, 40),
