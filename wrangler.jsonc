@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "pay-small-check",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-11-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  "limits": {
+    "cpu_ms": 30000
+  },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "BUY_MODE": "mock",
+    "PAYMENT_MODE": "open",
+    "BUY_TOKEN": "USDT",
+    "CHECK_PRICE_USDT": "80000",
+    "CHECK_PRICE_CNGN": "120000000",
+    "CELO_RPC_URL": "https://forno.celo.org",
+    "ATTRIBUTION_CODE": "",
+    "PAY_TO": "",
+    "AGENT_ENDPOINT": ""
+  }
+}
