@@ -1,0 +1,48 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "pay-small-check",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  // A check parses several paid JSON payloads. Standard usage model required.
+  "limits": {
+    "cpu_ms": 30000,
+    "subrequests": 50
+  },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none",
+    "run_worker_first": ["/api/*", "/agent.json", "/.well-known/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pay-small-check",
+      "database_id": "00000000-0000-4000-8000-000000000001",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "DRY_RUN": "true",
+    "CHECK_PRICE_USD": "0.08",
+    "BUY_TOKEN": "USDT",
+    "MAX_BUY_ATOMIC_PER_CALL": "20000",
+    "ATTRIBUTION_CODE": "paysmallcheck",
+    "PAY_TO": "0x0000000000000000000000000000000000000000",
+    "CELO_RPC_URL": "https://forno.celo.org",
+    "BUY_GATEWAY_CATALOG": "https://gateway.usebuy.ai/v1/catalog",
+    "X402_FACILITATOR_URL": "https://api.x402.celo.org",
+    "PUBLIC_APP_URL": "",
+    "AGENT_ID": "",
+    "GITHUB_REPO": "ahmardchain/pay-small-check"
+  }
+}

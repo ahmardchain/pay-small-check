@@ -1,0 +1,38 @@
+{
+  "name": "pay-small-check",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Check an X vendor before you pay them. The agent buys real X data through buy on Celo and returns a Safe, Caution, or Risky verdict.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "dry-run": "wrangler deploy --dry-run",
+    "types": "wrangler types",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/**/*.test.ts",
+    "register:8004": "tsx scripts/register-8004.ts",
+    "check:dry": "tsx scripts/dry-run-check.ts",
+    "db:migrate:local": "wrangler d1 migrations apply pay-small-check --local",
+    "db:migrate": "wrangler d1 migrations apply pay-small-check --remote"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@celo/attribution-tags": "^0.5.0",
+    "@x402/core": "^2.30.0",
+    "@x402/evm": "^2.30.0",
+    "@x402/fetch": "^2.30.0",
+    "@x402/hono": "^2.30.0",
+    "hono": "^4.13.16",
+    "viem": "^2.38.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261104.1",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "wrangler": "^4.45.0"
+  }
+}

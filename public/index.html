@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pay Small Check</title>
+    <meta name="description" content="Check an X vendor before you pay them. A small stablecoin fee on Celo buys the public record and returns Safe, Caution, or Risky." />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="wrap stack">
+      <header class="brand">
+        <div>
+          <p class="kicker">Before you transfer</p>
+          <h1>Pay Small Check</h1>
+        </div>
+      </header>
+      <p class="lede">Paste a vendor's X handle. Pay a small fee in stablecoin. Get a plain verdict, with the posts it came from.</p>
+      <section id="banner" class="banner" hidden></section>
+      <form id="check-form" class="card stack">
+        <label>
+          X handle
+          <input id="handle" name="handle" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="@shopname" required />
+        </label>
+        <label id="token-field">
+          Pay with
+          <select id="token">
+            <option value="USDT">USDT</option>
+            <option value="cUSD">cUSD</option>
+          </select>
+        </label>
+        <p id="price" class="status">Loading the fee…</p>
+        <p id="who" class="status"></p>
+        <button class="primary" id="go" type="submit">Check this vendor</button>
+        <p id="state" class="status" role="status"></p>
+      </form>
+      <section id="result" class="card stack" hidden></section>
+      <section class="card later">
+        <p class="kicker">Not in this version</p>
+        <h2>WhatsApp</h2>
+        <p>Coming soon. You will paste a number or chat text yourself. Pay Small Check will not pretend to have a WhatsApp data source.</p>
+        <p><a href="/whatsapp/">See the WhatsApp note</a></p>
+        <h2>Instagram</h2>
+        <p>A later phase. Version 1 reads X only.</p>
+      </section>
+      <footer class="footer">
+        <a href="/proof/">Proof</a>
+        <a href="/how-to/">How to use</a>
+        <a href="/about/">About</a>
+        <a href="/terms/">Terms</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/support/">Support</a>
+        <span>Operated by the Pay Small Check project, not by Opera or MiniPay.</span>
+      </footer>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
