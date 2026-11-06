@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pay Small Check</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f3ecdf;
+        --ink: #1c1712;
+        --muted: #5e564c;
+        --line: #d9cbb6;
+        --stamp: #0f6b4c;
+        --high: #8d1d32;
+        --medium: #8a5a12;
+        --low: #0f6b4c;
+      }
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top left, #fff8ec 0, transparent 28rem),
+          var(--paper);
+        color: var(--ink);
+        font-family: "Avenir Next", "Segoe UI", sans-serif;
+      }
+      main {
+        width: min(40rem, calc(100% - 1.5rem));
+        margin: 0 auto;
+        padding: 1.25rem 0 3rem;
+      }
+      header { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+      h1 {
+        font-family: Palatino, "Iowan Old Style", Georgia, serif;
+        font-weight: 600;
+        font-size: 2.4rem;
+        line-height: 0.95;
+        margin: 0.2rem 0 0.6rem;
+      }
+      p { line-height: 1.45; }
+      .lede { color: var(--muted); margin-top: 0; }
+      .stamp {
+        border: 2px solid var(--stamp);
+        color: var(--stamp);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.72rem;
+        padding: 0.45rem 0.55rem;
+        transform: rotate(3deg);
+        white-space: nowrap;
+      }
+      form, .card {
+        background: #fffdf8;
+        border: 1px solid var(--line);
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+      label { display: block; font-size: 0.85rem; margin-bottom: 0.35rem; }
+      input, select, button {
+        width: 100%;
+        font: inherit;
+        border-radius: 0.7rem;
+        border: 1px solid var(--line);
+        padding: 0.85rem 0.9rem;
+        background: white;
+        color: var(--ink);
+      }
+      button {
+        margin-top: 0.75rem;
+        background: var(--ink);
+        color: #f6f1e7;
+        border: 0;
+        font-weight: 650;
+      }
+      button:disabled { opacity: 0.55; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.6rem; }
+      .risk {
+        display: inline-block;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        color: white;
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .risk.high { background: var(--high); }
+      .risk.medium { background: var(--medium); }
+      .risk.low { background: var(--low); }
+      ul { padding-left: 1.1rem; }
+      li { margin: 0.35rem 0; }
+      .excerpt { color: var(--muted); font-size: 0.92rem; }
+      a { color: var(--stamp); }
+      .error { color: var(--high); }
+      footer { color: var(--muted); font-size: 0.85rem; margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <div class="stamp">Celo · before you pay</div>
+          <h1>Pay small before you pay them.</h1>
+        </div>
+      </header>
+      <p class="lede">
+        Paste the Instagram handle, WhatsApp number, or shop link a vendor sent you.
+        This check pays for public traces — profile, posts, scam reports, the shop page —
+        then gives you a low, medium, or high score. It does not read your chats.
+      </p>
+      <form id="check">
+        <label for="query">Vendor</label>
+        <input id="query" name="query" autocomplete="off" placeholder="@shop, 0803…, or https://…" required />
+        <div class="row" id="pay-row" hidden>
+          <div>
+            <label for="token">Pay with</label>
+            <select id="token">
+              <option value="cNGN">cNGN</option>
+              <option value="USDT">USD₮</option>
+            </select>
+          </div>
+          <div>
+            <label>Price</label>
+            <input id="price" readonly />
+          </div>
+        </div>
+        <button id="go" type="submit">Run a sample check</button>
+        <p id="status-line" class="excerpt"></p>
+      </form>
+      <section id="out"></section>
+      <footer id="fine"></footer>
+    </main>
+    <script type="module">
+      const form = document.querySelector("#check");
+      const out = document.querySelector("#out");
+      const go = document.querySelector("#go");
+      const payRow = document.querySelector("#pay-row");
+      const price = document.querySelector("#price");
+      const token = document.querySelector("#token");
+      const statusLine = document.querySelector("#status-line");
+      const fine = document.querySelector("#fine");
+      const status = await fetch("/api/status").then((res) => res.json());
+      const livePay = status.payment === "x402";
+      payRow.hidden = !livePay;
+      go.textContent = livePay ? "Pay and check" : "Run a sample check";
+      statusLine.textContent = livePay
+        ? `Live seller. PayTo ${status.payTo}. Agent buys data in ${status.buyToken}.`
+        : `Demo mode (${status.mode}). No wallet payment and no buy spend.`;
+      fine.textContent = `Catalog snapshot ${status.catalogVerifiedOn}. Attribution ${status.attributionCode}. Celo mainnet only.`;
+      const showPrice = () => {
+        price.value = token.value === "cNGN" ? status.prices.cNGN.display : status.prices.USDT.display;
+      };
+      token.addEventListener("change", showPrice);
+      showPrice();
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const query = document.querySelector("#query").value;
+        go.disabled = true;
+        out.innerHTML = "<p>Checking public traces… a live check can take a minute.</p>";
+        try {
+          let report;
+          let customerTx = null;
+          if (livePay) {
+            const mod = await import("/pay.js");
+            const paid = await mod.payAndCheck(query, token.value, status.attributionCode);
+            report = paid.report;
+            customerTx = paid.customerTx;
+          } else {
+            const res = await fetch("/api/check", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ query }),
+            });
+            report = await res.json();
+            if (!res.ok) throw new Error(report.error || "Check failed");
+          }
+          out.innerHTML = render(report, customerTx);
+        } catch (error) {
+          out.innerHTML = `<p class="error">${escapeHtml(error.message || "Check failed")}</p>`;
+        } finally {
+          go.disabled = false;
+        }
+      });
+
+      function render(report, customerTx) {
+        const reasons = (report.reasons || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+        const findings = (report.findings || [])
+          .map((item) => {
+            const bits = (item.excerpts || []).map((text) => `<div class="excerpt">${escapeHtml(text)}</div>`).join("");
+            return `<li><strong>${escapeHtml(item.source)}</strong> — ${escapeHtml(item.summary)}${bits}</li>`;
+          })
+          .join("");
+        const receipts = (report.receipts || [])
+          .map((item) => {
+            const hash = item.txHash
+              ? `<a href="https://celoscan.io/tx/${encodeURIComponent(item.txHash)}">${escapeHtml(item.txHash.slice(0, 10))}…</a>`
+              : "no tx";
+            return `<li>${escapeHtml(item.title)} · ${escapeHtml(item.outcome)} · ${escapeHtml(item.amountDisplay || "")} · ${hash}</li>`;
+          })
+          .join("");
+        const customer = customerTx
+          ? `<p>Your payment: <a href="https://celoscan.io/tx/${encodeURIComponent(customerTx)}">${escapeHtml(customerTx)}</a></p>`
+          : "";
+        return `<article class="card">
+          <span class="risk ${escapeHtml(report.risk)}">${escapeHtml(report.risk)}</span>
+          <h2>${escapeHtml(report.summary)}</h2>
+          <ul>${reasons}</ul>
+          <h3>Evidence</h3>
+          <ul>${findings}</ul>
+          <h3>Receipts</h3>
+          <ul>${receipts}</ul>
+          ${customer}
+          <p class="excerpt">${escapeHtml(report.disclaimer || "")}</p>
+        </article>`;
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+        })[char]);
+      }
+    </script>
+  </body>
+</html>
