@@ -5,7 +5,7 @@ About 90 seconds on the live app, then two local commands that do not spend. Fac
 ## Click path
 
 1. Open https://pay-small-check.ahmardchain.workers.dev
-   Confirm the page asks for an X handle and shows a $0.08 fee. USDT and cUSD are the choices. WhatsApp and Instagram are labeled as not available in this version.
+   Confirm the page asks for an X handle and shows a $0.08 fee. USDT and cUSD are the choices. WhatsApp is labeled as the next planned platform; its page is a coming-soon stub, not a working check.
 2. Open https://pay-small-check.ahmardchain.workers.dev/api/config
    Confirm `dryRun` is `false`, `priceUsd` is `"0.08"`, `agentId` is `"10045"`, `payTo` and `agentPayer` are `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`, `attributionCode` is `celo_aac08e9358f3`, and `calls` has six entries.
 3. Open https://pay-small-check.ahmardchain.workers.dev/agent.json
@@ -68,7 +68,7 @@ npm run check:dry -- @riskyvendor
 
 **Why X first?** Version 1 is the check a buyer can do from a public handle before they pay. The six calls (profile, about, posts, replies, followers, complaint search) all exist on the buy catalog today. That is the whole paid path.
 
-**Why is WhatsApp not a real check yet?** There is no WhatsApp source this agent can pay. The page at `/whatsapp/` is a stub: the field is disabled, and a `channel: "whatsapp"` API call returns 501 and does not score a number. Inventing a feed would be a fake check. Instagram is named as a later phase and is not callable.
+**Why is WhatsApp not a real check yet?** There is no WhatsApp source this agent can pay. The page at `/whatsapp/` is a stub: the field is disabled, and a `channel: "whatsapp"` API call returns 501 and does not score a number. Inventing a feed would be a fake check. WhatsApp is the next planned platform after X, but it is not built.
 
 **Why is cUSD a transfer, not x402?** The live 402 from this app offers USDT, USDC, and USA₮ only. The hosted facilitator does not settle cUSD. `/api/config` says the same thing. MiniPay also cannot sign the x402 typed-data payload, so the page sends a normal USDT or cUSD transfer and pays the network fee in that coin. The transfer calldata carries `celo_aac08e9358f3`. An x402 settlement cannot, so those payments are identified by PayTo.
 

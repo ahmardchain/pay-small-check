@@ -292,8 +292,7 @@ Captured from a local run in practice mode (`DRY_RUN=true`, sample posts, no pay
 | Buyer payments and buy transaction hashes on `/proof` | ✅ Real. Rows appear only when a buyer pays; no count is typed into this README |
 | Verdict rules, payment checks, receipts, replay protection | 🛠️ Self-built in this repo |
 | `@safevendor`, `@cautionvendor`, `@riskyvendor` | 🧪 Sample posts, labeled practice. Only when `DRY_RUN=true` (the local default in `wrangler.jsonc`). Never on the live site |
-| WhatsApp | ⏸️ Coming-soon page at `/whatsapp/`. The field is disabled. Nothing is uploaded. No WhatsApp data source |
-| Instagram | ⏸️ Not built. A later phase |
+| WhatsApp | ⏸️ Next platform after X; not built. Coming-soon page at `/whatsapp/` only. The field is disabled, nothing is uploaded, and no WhatsApp data source is connected |
 | A guarantee the vendor will deliver | Not what this is. The verdict is a reading of public posts |
 
 ## Hackathon criteria
@@ -402,7 +401,7 @@ Copy [`.env.example`](.env.example) to `.dev.vars` for local runs. Vars in `wran
 
 | Method | Route | Description |
 |---|---|---|
-| `POST` | `/api/checks` | Run a check. Body `{ "handle": "@name" }`. Unpaid returns `402` with `PAYMENT-REQUIRED`. Retry with `PAYMENT-SIGNATURE`, or with `{ "handle", "paymentTx": "0x…", "token": "USDT" or "cUSD" }` after a transfer. A reused payment returns `409`. `channel: "whatsapp"` or `"instagram"` returns `501` |
+| `POST` | `/api/checks` | Run a check. Body `{ "handle": "@name" }`. Unpaid returns `402` with `PAYMENT-REQUIRED`. Retry with `PAYMENT-SIGNATURE`, or with `{ "handle", "paymentTx": "0x…", "token": "USDT" or "cUSD" }` after a transfer. A reused payment returns `409`. `channel: "whatsapp"` returns `501`; WhatsApp checks are not built |
 | `GET` | `/api/receipts` | Latest public receipts, `?limit=` up to 100 |
 | `GET` | `/api/receipts/:id` | One receipt |
 | `GET` | `/api/config` | Public config: price, PayTo, tokens, agent id, the six calls |
@@ -439,7 +438,7 @@ pay-small-check/
 
 ## Known limits
 
-- Version 1 reads X only. The WhatsApp page does not submit. Instagram is not wired.
+- Version 1 reads X only. WhatsApp is the next planned platform; its page is a non-submitting stub.
 - cUSD cannot be an x402 payment on the hosted facilitator. It is a transfer.
 - x402 payments do not carry `celo_aac08e9358f3`. Use the PayTo address for those.
 - The complaint-search payload is whatever the gateway returns. A shape this app cannot read is a gap, not a clean bill of health.
@@ -448,8 +447,7 @@ pay-small-check/
 
 ## Roadmap
 
-- **WhatsApp:** the buyer pastes the vendor's number or chat text themselves, once there is a data source the agent can actually pay for.
-- **Instagram:** the same six-read check, if buy lists Instagram capabilities.
+- **WhatsApp — next after X:** the buyer would paste the vendor's number or chat text themselves, once there is a data source the agent can actually pay for. Not built; the current page is a stub.
 - **Bind transfers to their sender:** have the buyer sign the handle with the paying wallet, so a transfer hash cannot be claimed by someone else.
 - **Shareable verdicts:** a link a buyer can drop in the vendor's replies.
 
