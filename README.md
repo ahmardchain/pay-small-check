@@ -64,7 +64,7 @@ Two rails, both on Celo mainnet (chain id `42220`):
 
 **cUSD is not an x402 asset** on the hosted facilitator (checked against `https://x402.celo.org/skill.md` and `GET /supported` behavior documented there). cUSD works on the transfer rail only. Gasless signatures are USDT, USDC, or USAT.
 
-x402 settlements cannot carry an ERC-8021 suffix. For those transactions the identifier is the **PayTo** address in `PAY_TO`. The registration transaction and MiniPay transfers do carry the builder code.
+x402 settlements cannot carry an ERC-8021 suffix. For those transactions the identifier is the PayTo address `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`. Registration and MiniPay transfers carry the issued builder code `celo_aac08e9358f3`.
 
 ## Proof of payment
 
@@ -99,11 +99,10 @@ Open the printed local URL. Try `@safevendor`, `@cautionvendor`, and `@riskyvend
 
 Do these in order. Nothing below is done for you, because each step spends a real key or real stablecoins.
 
-1. **Create two pieces of config.**
-   - An EVM private key for the agent. This address pays buy. Fund it with USDT on Celo mainnet (or USDC / USAT if you set `BUY_TOKEN`). About **$0.05 per check** is the data cost at the prices above. Also keep a little USDT for the registration gas if you pay gas in USDT.
+1. **Fund the agent wallet and create a facilitator key.** The public agent wallet is `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`. It pays buy and receives the buyer's fee. The private key stays with you. It is not in this repo. Fund that address with USDT on Celo mainnet (or USDC / USAT if you set `BUY_TOKEN`). About **$0.05 per check** is the data cost at the prices above. Also keep a little USDT for the registration gas if you pay gas in USDT.
    - A facilitator API key from <https://x402.celo.org> (connect a wallet, Create API key, sign). It looks like `x402_...`. New keys include a few free mainnet settlements, then the dashboard balance.
 
-2. **Choose PayTo.** Set `PAY_TO` to the address that should receive the buyer's fee. It can be the agent address. `0x0000…0000` means "not live".
+2. **PayTo is already that wallet.** `PAY_TO` in `wrangler.jsonc` and `.env.example` is `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`. Clearing it to the zero address turns live mode off.
 
 3. **Put the secrets in `.dev.vars`** (see `.env.example`). For production:
 
@@ -114,7 +113,7 @@ Do these in order. Nothing below is done for you, because each step spends a rea
 
    Set the public vars in `wrangler.jsonc` or the dashboard: `DRY_RUN` = `"false"`, `PAY_TO`, `BUY_TOKEN`, `CHECK_PRICE_USD`, `ATTRIBUTION_CODE`, `CELO_RPC_URL`, `PUBLIC_APP_URL`.
 
-4. **Replace the attribution code** if the hackathon issued you one. The default is `paysmallcheck`. The issued code is what a leaderboard credits. Do this before the first real transaction. x402 payments still will not carry it. Report `PAY_TO` for those.
+4. **The attribution code is already the issued one:** `celo_aac08e9358f3`. Registration and MiniPay transfers append it as an ERC-8021 schema-0 suffix. x402 payments still cannot carry it. For those, report PayTo `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`.
 
 5. **Create the D1 database** and put its id in `wrangler.jsonc` (`database_id` is a local placeholder today):
 
@@ -136,7 +135,6 @@ Do these in order. Nothing below is done for you, because each step spends a rea
    ```bash
    AGENT_PRIVATE_KEY=0x... \
    AGENT_URI=https://<your-worker>/agent.json \
-   ATTRIBUTION_CODE=paysmallcheck \
    CELO_RPC_URL=https://forno.celo.org \
    npm run register:8004
    ```
@@ -147,11 +145,11 @@ Do these in order. Nothing below is done for you, because each step spends a rea
    npm run register:8004 -- --dry-run
    ```
 
-   The script calls `register(agentURI)` on `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`, with the ERC-8021 suffix on the calldata, and pays gas in USDT unless `GAS_FEE_CURRENCY=celo`. Copy the printed `agentId` into `AGENT_ID` and redeploy so `/agent.json` includes `registrations`.
+   The script calls `register(agentURI)` on `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`, with the `celo_aac08e9358f3` suffix on the calldata, and pays gas in USDT unless `GAS_FEE_CURRENCY=celo`. Copy the printed `agentId` into `AGENT_ID` and redeploy so `/agent.json` includes `registrations`. The registration file already lists the agent wallet and the attribution code.
 
 8. **Confirm a real check.** From a wallet that is not the agent wallet, open the site, pay, and open `/proof`. You should see your payment hash and six buy hashes. The agent address in `/api/config` (`agentPayer`) is the wallet that paid buy.
 
-9. **Submit the hackathon entry** with this repo, the ERC-8004 id, `PAY_TO`, the attribution code, and a link to `/proof`.
+9. **Submit the hackathon entry** with this repo, the ERC-8004 id, PayTo `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`, attribution code `celo_aac08e9358f3`, and a link to `/proof`.
 
 `DRY_RUN=false` with a missing key returns 503 and does not invent a verdict.
 
@@ -220,4 +218,3 @@ Node 20 or newer. The Worker compatibility date is 2026-11-06, with `nodejs_comp
 
 - Confirm a live paid response once the agent wallet is funded, and tighten the normalizer if TikHub wraps posts in a shape the walker misses. The walker is tested against the nested `legacy` / `core.user_results` shape those endpoints use.
 - After registration, set `AGENT_ID` so the registration file and the on-chain id match.
-- Swap `ATTRIBUTION_CODE` for the code issued at hackathon enrolment before the first tagged transaction.

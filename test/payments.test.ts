@@ -33,7 +33,7 @@ function reader(overrides: Partial<ChainReader> = {}): ChainReader {
     getChainId: async () => 42220,
     getTransaction: async () => ({
       to: TOKENS.USDT.address,
-      input: taggedTransferData(payTo, amount, "paysmallcheck"),
+      input: taggedTransferData(payTo, amount, "celo_aac08e9358f3"),
     }),
     getTransactionReceipt: async () => ({
       status: "success",
@@ -46,7 +46,7 @@ function reader(overrides: Partial<ChainReader> = {}): ChainReader {
 test("a tagged USDT transfer of the exact fee is accepted", async () => {
   const proof = await verifyTransferPayment(reader(), hash, payTo, { token: TOKENS.USDT, amount });
   assert.equal(proof.from.toLowerCase(), from.toLowerCase());
-  assert.deepEqual(proof.attributionCodes, ["paysmallcheck"]);
+  assert.deepEqual(proof.attributionCodes, ["celo_aac08e9358f3"]);
 });
 
 test("the wrong recipient is rejected and the hash is not consumed by a thrown error", async () => {

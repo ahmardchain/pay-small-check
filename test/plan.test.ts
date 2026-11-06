@@ -3,7 +3,7 @@ import test from "node:test";
 import { CHECK_PLAN, resolvePlan } from "../src/lib/capabilities.js";
 import { usdToAtomic } from "../src/lib/money.js";
 import { tagCalldata, taggedTransferData } from "../src/lib/attribution.js";
-import { fromDataSuffix } from "@celo/attribution-tags";
+import { ERC_8021_MARKER, fromDataSuffix } from "@celo/attribution-tags";
 import { encodeFunctionData } from "viem";
 import { ERC20_TRANSFER_ABI } from "../src/lib/attribution.js";
 import { buildAuthorization, buildPaymentPayload, selectRequirement, typedDataFor } from "../public/x402.js";
@@ -34,15 +34,17 @@ test("the check plan resolves only available catalog rows and keeps the document
 });
 
 test("ERC-8021 suffix survives on a transfer and decodes back to the builder code", () => {
-  const data = taggedTransferData("0x1111111111111111111111111111111111111111", 80_000n, "paysmallcheck");
+  const data = taggedTransferData("0x1111111111111111111111111111111111111111", 80_000n, "celo_aac08e9358f3");
   const decoded = fromDataSuffix(data);
-  assert.deepEqual(decoded?.codes, ["paysmallcheck"]);
+  assert.equal(decoded?.schemaId, 0);
+  assert.deepEqual(decoded?.codes, ["celo_aac08e9358f3"]);
+  assert.ok(data.endsWith(ERC_8021_MARKER.slice(2)));
   const plain = encodeFunctionData({
     abi: ERC20_TRANSFER_ABI,
     functionName: "transfer",
     args: ["0x1111111111111111111111111111111111111111", 1n],
   });
-  assert.equal(fromDataSuffix(tagCalldata(plain, "paysmallcheck"))?.codes[0], "paysmallcheck");
+  assert.equal(fromDataSuffix(tagCalldata(plain, "celo_aac08e9358f3"))?.codes[0], "celo_aac08e9358f3");
 });
 
 test("browser x402 payload matches the v2 exact authorization shape", () => {

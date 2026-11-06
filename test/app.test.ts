@@ -22,10 +22,20 @@ function liveEnv() {
     PAY_TO: payTo,
     AGENT_PRIVATE_KEY: payer,
     CHECK_PRICE_USD: "0.08",
-    ATTRIBUTION_CODE: "paysmallcheck",
+    ATTRIBUTION_CODE: "celo_aac08e9358f3",
     BUY_TOKEN: "USDT",
   };
 }
+
+test("agent.json publishes the issued code and the public agent wallet", async () => {
+  const app = createApp({ store: memoryStore() });
+  const response = await app.request("http://localhost/agent.json", {}, { DRY_RUN: "true" });
+  assert.equal(response.status, 200);
+  const body = await bodyOf(response);
+  assert.match(body.description, /celo_aac08e9358f3/);
+  const wallet = body.services.find((service: { name: string }) => service.name === "agentWallet");
+  assert.equal(wallet.endpoint, "eip155:42220:0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08");
+});
 
 test("practice mode returns a verdict without payment and stores a receipt", async () => {
   const store = memoryStore();
@@ -115,7 +125,7 @@ test("a confirmed USDT transfer is consumed once and the receipt keeps the hash"
     getChainId: async () => 42220,
     getTransaction: async () => ({
       to: TOKENS.USDT.address,
-      input: taggedTransferData(payTo, amount, "paysmallcheck"),
+      input: taggedTransferData(payTo, amount, "celo_aac08e9358f3"),
     }),
     getTransactionReceipt: async () => ({
       status: "success",

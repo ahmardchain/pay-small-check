@@ -2,6 +2,7 @@ import { getAddress, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { attributionSuffix } from "./lib/attribution.js";
 import { atomicString, usdToAtomic } from "./lib/money.js";
+import { AGENT_WALLET, ATTRIBUTION_CODE } from "./lib/project.js";
 import {
   isAddress,
   parseTokenSymbol,
@@ -54,13 +55,13 @@ export function readSettings(env: AppBindings, requestUrl?: string): Settings {
   const priceUsd = env.CHECK_PRICE_USD?.trim() || "0.08";
   usdToAtomic(priceUsd, 6);
   const buyToken = parseTokenSymbol(env.BUY_TOKEN, "USDT");
-  const code = (env.ATTRIBUTION_CODE?.trim() || "paysmallcheck").toLowerCase();
+  const code = (env.ATTRIBUTION_CODE?.trim() || ATTRIBUTION_CODE).toLowerCase();
   const suffix = attributionSuffix(code);
   const origin = (env.PUBLIC_APP_URL?.trim() || originOf(requestUrl) || "").replace(/\/$/, "");
   const agentPrivateKey = normalizeKey(env.AGENT_PRIVATE_KEY);
   return {
     dryRun,
-    payTo: isAddress(env.PAY_TO) ? getAddress(env.PAY_TO) : null,
+    payTo: resolvePayTo(env.PAY_TO),
     agentPrivateKey,
     agentAddress: agentPrivateKey ? privateKeyToAccount(agentPrivateKey).address : null,
     x402ApiKey: env.X402_API_KEY?.trim() || null,
@@ -90,6 +91,11 @@ function originOf(requestUrl?: string): string {
   } catch {
     return "";
   }
+}
+
+function resolvePayTo(value: string | undefined): Address | null {
+  if (value === undefined || value.trim() === "") return AGENT_WALLET;
+  return isAddress(value) ? getAddress(value) : null;
 }
 
 function normalizeKey(value: string | undefined): Hex | null {

@@ -3,6 +3,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { celo } from "viem/chains";
 import { withAttribution } from "@celo/attribution-tags";
 import { attributionSuffix } from "../src/lib/attribution.js";
+import { ATTRIBUTION_CODE } from "../src/lib/project.js";
 import { IDENTITY_REGISTRY, TOKENS } from "../src/lib/tokens.js";
 
 /**
@@ -35,7 +36,7 @@ const ABI = [
 const dryRun = process.argv.includes("--dry-run");
 const configuredUri = process.env.AGENT_URI?.trim() || (process.env.PUBLIC_APP_URL?.trim() ? `${process.env.PUBLIC_APP_URL.trim().replace(/\/$/, "")}/agent.json` : "");
 const uri = configuredUri || (dryRun ? "https://example.com/agent.json" : "");
-const code = (process.env.ATTRIBUTION_CODE?.trim() || "paysmallcheck").toLowerCase();
+const code = (process.env.ATTRIBUTION_CODE?.trim() || ATTRIBUTION_CODE).toLowerCase();
 const rpcUrl = process.env.CELO_RPC_URL?.trim() || "https://forno.celo.org";
 const feeMode = (process.env.GAS_FEE_CURRENCY?.trim() || "USDT").toLowerCase();
 const feeCurrency = feeMode === "celo" ? undefined : feeMode === "usdc" ? TOKENS.USDC.feeCurrency : TOKENS.USDT.feeCurrency;
