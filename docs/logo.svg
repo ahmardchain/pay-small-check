@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 200" width="760" height="200" role="img" aria-label="Pay Small Check">
+  <rect width="760" height="200" rx="28" fill="#1c1612"/>
+  <g transform="translate(108 100) rotate(-8)">
+    <circle r="66" fill="none" stroke="#3fae86" stroke-width="7"/>
+    <circle r="54" fill="none" stroke="#3fae86" stroke-width="2" stroke-dasharray="4 6"/>
+    <path d="M-26 2 L-7 21 L28 -18" fill="none" stroke="#3fae86" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="206" y="94" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-weight="700" fill="#f3eadb">Pay Small Check</text>
+  <text x="208" y="138" font-family="Helvetica, Arial, sans-serif" font-size="20" letter-spacing="2.5" fill="#c9b9a3">CHECK THE VENDOR BEFORE YOU PAY</text>
+</svg>

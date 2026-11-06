@@ -19,7 +19,7 @@ About 90 seconds on the live app, then two local commands that do not spend. Fac
 
    That is `celo_aac08e9358f3`, then a length byte, schema 0, and the ERC-8021 marker.
 5. Open https://pay-small-check.ahmardchain.workers.dev/proof/
-   `/proof` redirects here. The list is the public set of paid checks. It was empty at the last check. Do not expect a fabricated count in this file.
+   `/proof` redirects here. The list is the public set of paid checks, each with the buyer's transaction and one Celoscan link per buy call. Counts live there, not in this file.
 6. Open https://pay-small-check.ahmardchain.workers.dev/whatsapp/
    The input is disabled and the button says coming soon. Nothing on that page is sent to a data provider.
 
