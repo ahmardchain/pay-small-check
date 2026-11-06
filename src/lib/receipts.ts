@@ -1,7 +1,7 @@
 export interface StoredReceipt {
   id: string;
   createdAt: string;
-  channel: "x";
+  channel: "x" | "instagram";
   handle: string;
   status: "complete" | "failed";
   dryRun: boolean;

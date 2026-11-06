@@ -3,8 +3,9 @@ import { privateKeyToAccount } from "viem/accounts";
 import { registrationFile } from "./agent-card.js";
 import { runLiveCheck, stripOutput } from "./check.js";
 import { analyzeVendor } from "./lib/analyze.js";
+import { INSTAGRAM_COMMENTS, planFor, type CheckChannel } from "./lib/capabilities.js";
 import { fixtureFor, practiceBuyCalls } from "./lib/fixtures.js";
-import { parseHandle } from "./lib/handles.js";
+import { parseHandle, parseInstagramHandle } from "./lib/handles.js";
 import { celoReader, PaymentError, verifyTransferPayment, type ChainReader } from "./lib/payments.js";
 import { d1Store, memoryStore, publicReceipt, type ReceiptStore, type StoredReceipt } from "./lib/receipts.js";
 import { TOKENS, type TokenSymbol } from "./lib/tokens.js";
@@ -82,26 +83,37 @@ export function createApp(options: AppOptions = {}) {
     }
     const body = await readBody(c.req.raw);
     if (body == null) return c.json({ error: "invalid_json", message: "Send a JSON object." }, 400);
-    const channel = typeof body.channel === "string" ? body.channel : "x";
-    if (channel === "whatsapp" || channel === "instagram") {
+    const requested = typeof body.channel === "string" ? body.channel : "x";
+    if (requested === "facebook") {
       return c.json(
         {
-          error: "not_available",
-          channel,
-          message:
-            channel === "whatsapp"
-              ? "WhatsApp checks are not available. Pay Small Check does not buy WhatsApp data and will not invent it. Version 1 reads X only."
-              : "Instagram is a later phase. Version 1 reads X only.",
+          error: "not_built",
+          channel: "facebook",
+          message: "Facebook checks are not built. The catalog has no Facebook source, and this app will not invent one.",
         },
         501,
       );
     }
-    if (channel !== "x") return c.json({ error: "invalid_channel", message: "channel must be x." }, 400);
-    const handle = parseHandle(body.handle);
-    if (!handle) return c.json({ error: "invalid_handle", message: "Paste an X handle, like @shopname." }, 400);
+    if (requested !== "x" && requested !== "instagram") {
+      return c.json({ error: "unsupported_channel", channel: requested, message: "Unsupported channel." }, 400);
+    }
+    const channel: CheckChannel = requested;
+    const handle = channel === "instagram" ? parseInstagramHandle(body.handle) : parseHandle(body.handle);
+    if (!handle) {
+      return c.json(
+        {
+          error: "invalid_handle",
+          message:
+            channel === "instagram"
+              ? "Paste an Instagram username, like @shopname."
+              : "Paste an X handle, like @shopname.",
+        },
+        400,
+      );
+    }
 
     if (settings.dryRun) {
-      const receipt = await finishDryRun(storeFor(c.env, options.store), handle);
+      const receipt = await finishDryRun(storeFor(c.env, options.store), handle, channel);
       return c.json(publicReceipt(receipt));
     }
 
@@ -123,9 +135,9 @@ export function createApp(options: AppOptions = {}) {
     }
 
     if (paymentTx) {
-      return transferCheck(c, settings, handle, paymentTx, body.token, options);
+      return transferCheck(c, settings, channel, handle, paymentTx, body.token, options);
     }
-    return x402Check(c, settings, handle, Boolean(paymentHeader), options);
+    return x402Check(c, settings, channel, handle, Boolean(paymentHeader), options);
   });
 
   return app;
@@ -164,13 +176,13 @@ async function readBody(request: Request): Promise<Record<string, unknown> | und
   }
 }
 
-async function finishDryRun(store: ReceiptStore, handle: string): Promise<StoredReceipt> {
+async function finishDryRun(store: ReceiptStore, handle: string, channel: CheckChannel): Promise<StoredReceipt> {
   const fixture = fixtureFor(handle);
-  const analysis = analyzeVendor(handle, fixture.snapshot);
+  const analysis = analyzeVendor(handle, fixture.snapshot, new Date(), channel);
   const receipt: StoredReceipt = {
     id: newId(),
     createdAt: new Date().toISOString(),
-    channel: "x",
+    channel,
     handle,
     status: "complete",
     dryRun: true,
@@ -193,7 +205,7 @@ async function finishDryRun(store: ReceiptStore, handle: string): Promise<Stored
       attribution: "not-applicable",
       attributionCodes: [],
     },
-    buyCalls: practiceBuyCalls(),
+    buyCalls: practiceBuyCalls(channel),
     paymentTx: null,
   };
   await store.put(receipt);
@@ -203,6 +215,7 @@ async function finishDryRun(store: ReceiptStore, handle: string): Promise<Stored
 async function transferCheck(
   c: { env: AppBindings; json: (body: unknown, status?: number) => Response },
   settings: Settings,
+  channel: CheckChannel,
   handle: string,
   paymentTx: string,
   tokenSymbol: unknown,
@@ -231,7 +244,7 @@ async function transferCheck(
     if (!(await store.claimPayment(key))) {
       return c.json({ error: "payment_used", message: "That payment was already used for a check." }, 409);
     }
-    const live = await runLiveCheck(settings, handle, options.fetchImpl);
+    const live = await runLiveCheck(settings, handle, options.fetchImpl, channel);
     if (!live.charge || !live.analysis) {
       await store.releasePayment(key);
       return c.json(
@@ -244,6 +257,7 @@ async function transferCheck(
       );
     }
     const receipt = await saveReceipt(store, {
+      channel,
       handle,
       settings,
       analysis: live.analysis,
@@ -270,6 +284,7 @@ async function transferCheck(
 async function x402Check(
   c: { env: AppBindings; req: { raw: Request }; json: (body: unknown, status?: number) => Response },
   settings: Settings,
+  channel: CheckChannel,
   handle: string,
   hasPayment: boolean,
   options: AppOptions,
@@ -321,7 +336,7 @@ async function x402Check(
     return c.json({ error: "payment_used", message: "That payment authorization is already being used for a check." }, 409);
   }
 
-  const live = await runLiveCheck(settings, handle, options.fetchImpl);
+  const live = await runLiveCheck(settings, handle, options.fetchImpl, channel);
   if (!live.charge || !live.analysis) {
     // Nothing was charged and the authorization was not settled, so the same
     // signature may be retried.
@@ -337,6 +352,7 @@ async function x402Check(
   }
 
   const draft = await saveReceipt(store, {
+    channel,
     handle,
     settings,
     analysis: live.analysis,
@@ -407,6 +423,7 @@ function symbolForAsset(asset: string): string | null {
 async function saveReceipt(
   store: ReceiptStore,
   input: {
+    channel: CheckChannel;
     handle: string;
     settings: Settings;
     analysis: { verdict: StoredReceipt["verdict"]; summary: string; signals: unknown[]; evidence: unknown[] };
@@ -425,7 +442,7 @@ async function saveReceipt(
   const receipt: StoredReceipt = {
     id: newId(),
     createdAt: new Date().toISOString(),
-    channel: "x",
+    channel: input.channel,
     handle: input.handle,
     status: "complete",
     dryRun: false,
@@ -463,6 +480,17 @@ function newId(): string {
   return `chk_${crypto.randomUUID()}`;
 }
 
+function describeCalls(channel: CheckChannel) {
+  return planFor(channel).map((plan) => ({
+    key: plan.key,
+    capability: plan.id,
+    title: plan.title,
+    why: plan.why,
+    url: plan.documentedUrl,
+    quotedAtomic: plan.quotedAtomic,
+  }));
+}
+
 function publicConfig(settings: Settings) {
   const agent = settings.agentPrivateKey ? privateKeyToAccount(settings.agentPrivateKey).address : settings.agentAddress;
   return {
@@ -494,13 +522,18 @@ function publicConfig(settings: Settings) {
       decimals: token.decimals,
       amount,
     })),
-    calls: practiceBuyCalls().map((call) => ({
-      key: call.key,
-      capability: call.capability,
-      title: call.title,
-      why: call.why,
-      url: call.url,
-    })),
+    calls: describeCalls("x"),
+    instagramCalls: describeCalls("instagram"),
+    instagramComments: {
+      key: INSTAGRAM_COMMENTS.key,
+      capability: INSTAGRAM_COMMENTS.id,
+      title: INSTAGRAM_COMMENTS.title,
+      why: INSTAGRAM_COMMENTS.why,
+      url: INSTAGRAM_COMMENTS.documentedUrl,
+      quotedAtomic: INSTAGRAM_COMMENTS.quotedAtomic,
+      note: "Runs only when the posts payload contains a shortcode.",
+    },
+    facebook: { available: false, status: "coming_soon" },
     cusdNote:
       "cUSD (USDm in MiniPay) is accepted as an on-chain transfer. The hosted Celo x402 facilitator does not settle cUSD. Gasless x402 payments use USDT, USDC, or USA₮.",
     support: `https://github.com/${settings.githubRepo}/issues`,

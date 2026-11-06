@@ -1,4 +1,5 @@
 import { analyzeVendor, type Analysis, type VendorSnapshot } from "./analyze.js";
+import type { CheckChannel } from "./capabilities.js";
 import type { BuyCallResult } from "./buy.js";
 import { parseProviderPayload, type AccountFacts, type PostFacts } from "./normalize.js";
 
@@ -17,11 +18,9 @@ export function snapshotFromCalls(handle: string, calls: BuyCallResult[]): { sna
   }
   const profileAccounts = buckets.profile?.accounts ?? [];
   const aboutAccounts = buckets.about?.accounts ?? [];
-  const profile =
-    pickHandle(profileAccounts, handle) ??
-    pickHandle(aboutAccounts, handle) ??
-    pickHandle(profileAccounts, "") ??
-    null;
+  const primary = pickHandle(profileAccounts, handle) ?? pickHandle(profileAccounts, "");
+  const extra = pickHandle(aboutAccounts, handle) ?? pickHandle(aboutAccounts, "");
+  const profile = primary && extra ? fillAccount(primary, extra) : primary ?? extra;
   const snapshot: VendorSnapshot = {
     profile,
     posts: buckets.posts?.posts ?? [],
@@ -44,7 +43,28 @@ function pickHandle(accounts: AccountFacts[], handle: string): AccountFacts | nu
   return accounts.find((account) => account.handle.toLowerCase() === handle.toLowerCase()) ?? null;
 }
 
-export function analysisFromCalls(handle: string, calls: BuyCallResult[], now = new Date()): Analysis & { warnings: string[] } {
+function fillAccount(primary: AccountFacts, extra: AccountFacts): AccountFacts {
+  return {
+    handle: primary.handle,
+    displayName: primary.displayName ?? extra.displayName,
+    bio: primary.bio ?? extra.bio,
+    createdAt: primary.createdAt ?? extra.createdAt,
+    followers: primary.followers ?? extra.followers,
+    following: primary.following ?? extra.following,
+    postsCount: primary.postsCount ?? extra.postsCount,
+    verified: primary.verified ?? extra.verified,
+    defaultProfileImage: primary.defaultProfileImage ?? extra.defaultProfileImage,
+    location: primary.location ?? extra.location,
+    id: primary.id ?? extra.id,
+  };
+}
+
+export function analysisFromCalls(
+  handle: string,
+  calls: BuyCallResult[],
+  now = new Date(),
+  channel: CheckChannel = "x",
+): Analysis & { warnings: string[] } {
   const { snapshot, warnings } = snapshotFromCalls(handle, calls);
-  return { ...analyzeVendor(handle, snapshot, now), warnings };
+  return { ...analyzeVendor(handle, snapshot, now, channel), warnings };
 }

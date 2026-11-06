@@ -62,24 +62,57 @@ function handleOf(record: Record<string, unknown>): string | undefined {
   return raw.replace(/^@+/, "");
 }
 
+function nestedCount(value: unknown): number | undefined {
+  if (!isRecord(value)) return undefined;
+  return num(value.count);
+}
+
+function idOf(record: Record<string, unknown>): string | undefined {
+  if (typeof record.pk === "number" && Number.isFinite(record.pk)) return String(record.pk);
+  return text(record.rest_id) ?? text(record.id_str) ?? text(record.id) ?? text(record.pk);
+}
+
+function timeText(value: unknown): string | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const ms = value < 10_000_000_000 ? value * 1000 : value;
+    const date = new Date(ms);
+    return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+  }
+  return text(value);
+}
+
 function readAccount(record: Record<string, unknown>): AccountFacts | null {
   const handle = handleOf(record);
-  const followers = num(record.followers_count) ?? num(record.followersCount) ?? num(record.followers);
-  const following = num(record.friends_count) ?? num(record.following_count) ?? num(record.following);
-  const postsCount = num(record.statuses_count) ?? num(record.posts_count) ?? num(record.postsCount);
+  const followers =
+    num(record.followers_count) ??
+    num(record.followersCount) ??
+    num(record.follower_count) ??
+    num(record.followers) ??
+    nestedCount(record.edge_followed_by);
+  const following =
+    num(record.friends_count) ??
+    num(record.following_count) ??
+    num(record.following) ??
+    nestedCount(record.edge_follow);
+  const postsCount =
+    num(record.statuses_count) ??
+    num(record.posts_count) ??
+    num(record.postsCount) ??
+    num(record.media_count) ??
+    nestedCount(record.edge_owner_to_timeline_media);
   if (!handle || (followers === undefined && following === undefined && postsCount === undefined)) return null;
   return {
     handle,
-    displayName: text(record.name) ?? text(record.display_name),
-    bio: text(record.description) ?? text(record.bio),
-    createdAt: text(record.created_at) ?? text(record.createdAt),
+    displayName: text(record.name) ?? text(record.display_name) ?? text(record.full_name),
+    bio: text(record.description) ?? text(record.bio) ?? text(record.biography),
+    createdAt: timeText(record.created_at) ?? timeText(record.createdAt) ?? timeText(record.date_joined),
     followers,
     following,
     postsCount,
-    verified: bool(record.verified) ?? bool(record.is_blue_verified) ?? bool(record.isBlueVerified),
+    verified: bool(record.verified) ?? bool(record.is_blue_verified) ?? bool(record.isBlueVerified) ?? bool(record.is_verified),
     defaultProfileImage: bool(record.default_profile_image) ?? bool(record.defaultProfileImage),
     location: text(record.location),
-    id: text(record.rest_id) ?? text(record.id_str) ?? text(record.id),
+    id: idOf(record),
   };
 }
 
@@ -122,27 +155,72 @@ function nestedAuthor(record: Record<string, unknown>, depth = 0): string | unde
   return undefined;
 }
 
+function captionText(value: unknown): string | undefined {
+  if (typeof value === "string") return text(value);
+  if (isRecord(value)) return text(value.text);
+  return undefined;
+}
+
+function shortcodeOf(record: Record<string, unknown>): string | undefined {
+  const raw = text(record.shortcode) ?? text(record.short_code) ?? text(record.code);
+  if (!raw || !/^[A-Za-z0-9_-]{5,30}$/.test(raw) || /^\d+$/.test(raw)) return undefined;
+  return raw;
+}
+
 function readPost(record: Record<string, unknown>, host?: Record<string, unknown>): PostFacts | null {
-  const body = text(record.full_text) ?? text(record.text) ?? text(record.fullText);
+  const body = text(record.full_text) ?? text(record.text) ?? text(record.fullText) ?? captionText(record.caption);
   if (!body) return null;
-  const id = text(record.id_str) ?? text(record.rest_id) ?? (typeof record.id === "string" ? text(record.id) : undefined);
+  const shortcode = shortcodeOf(record);
+  const id = text(record.id_str) ?? text(record.rest_id) ?? (typeof record.id === "string" ? text(record.id) : undefined) ?? shortcode;
   const author = (host ? preferredAuthor(host) : undefined) ?? nestedAuthor(record);
+  const explicitUrl = text(record.url) ?? text(record.tweet_url) ?? text(record.permalink);
   return {
     id,
     handle: author,
     text: body.slice(0, 500),
-    createdAt: text(record.created_at) ?? text(record.createdAt),
+    createdAt: timeText(record.created_at) ?? timeText(record.createdAt) ?? timeText(record.taken_at),
     likes: num(record.favorite_count) ?? num(record.like_count) ?? num(record.likes),
     reposts: num(record.retweet_count) ?? num(record.repost_count) ?? num(record.reposts),
-    replies: num(record.reply_count) ?? num(record.replies),
-    url: text(record.url) ?? text(record.tweet_url),
+    replies: num(record.reply_count) ?? num(record.comment_count) ?? num(record.replies),
+    url: explicitUrl ?? (shortcode ? `https://www.instagram.com/p/${shortcode}/` : undefined),
   };
 }
 
 function looksLikeContainer(record: Record<string, unknown>): boolean {
-  return ["tweets", "posts", "results", "users", "followers", "timeline", "instructions", "entries", "data"].some(
+  return ["tweets", "posts", "results", "users", "followers", "timeline", "instructions", "entries", "data", "items", "comments"].some(
     (key) => key in record,
   );
+}
+
+/** First Instagram post shortcode in a provider payload, if one is present. */
+export function findInstagramShortcode(value: unknown): string | null {
+  const seen = new WeakSet<object>();
+  const visit = (node: unknown, depth: number): string | null => {
+    if (node == null || depth > 8) return null;
+    if (typeof node === "string") {
+      const match = node.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]{5,30})/i);
+      return match?.[1] ?? null;
+    }
+    if (typeof node !== "object") return null;
+    if (seen.has(node)) return null;
+    seen.add(node);
+    if (Array.isArray(node)) {
+      for (const item of node.slice(0, 40)) {
+        const found = visit(item, depth + 1);
+        if (found) return found;
+      }
+      return null;
+    }
+    const record = node as Record<string, unknown>;
+    const direct = shortcodeOf(record);
+    if (direct) return direct;
+    for (const child of Object.values(record)) {
+      const found = visit(child, depth + 1);
+      if (found) return found;
+    }
+    return null;
+  };
+  return visit(unwrapOutput(value), 0);
 }
 
 /** Walk a provider payload and pull accounts and posts out of whatever shape it has. */
@@ -172,7 +250,10 @@ export function parseProviderPayload(output: unknown): ParsedSlice {
     const postSource = isRecord(value.legacy) ? value.legacy : value;
     const post = readPost(postSource, value);
     if (post) posts.push(post);
-    for (const child of Object.values(value)) visit(child, depth + 1);
+    for (const [key, child] of Object.entries(value)) {
+      if (post && key === "caption") continue;
+      visit(child, depth + 1);
+    }
   };
 
   visit(unwrapOutput(output), 0);
