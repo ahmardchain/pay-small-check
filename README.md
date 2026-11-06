@@ -138,6 +138,8 @@ Buyer                         Pay Small Check                      buy (usebuy.a
 
 The buyer pays one fee. The agent then pays buy six times. A quote above `MAX_BUY_ATOMIC_PER_CALL` (default $0.02) is refused before it is signed. A call that times out or returns `settle_uncertain` is not retried. If the complaint search cannot be read, the verdict cannot be Safe.
 
+One payment buys one check. Before the first buy call, the transfer hash or the x402 payer and nonce is reserved in D1. A second request with the same payment, even sent at the same moment, gets `409 payment_used` and spends nothing. The reservation is released only when a check charged nothing, so a failed check can be retried with the same payment.
+
 ## The six buy calls
 
 Prices below are the catalog quotes read on 6 Nov 2026 (about **$0.005** each, USDC / USDT / USAT). The live catalog at `GET https://gateway.usebuy.ai/v1/catalog` is the authority at request time. Gateway PayTo for those calls: `0x20faAca5F980E29639A0FCC6dcA6988E18ed333B`.
@@ -202,14 +204,14 @@ Practice handles, sample posts only: `@safevendor`, `@cautionvendor`, `@riskyven
 
 | Command | What it does | Spends? |
 |---|---|---|
-| `npm test` | 22 tests: verdicts, catalog plan, ERC-8021 round-trip, x402 challenge, transfer receipt | No |
+| `npm test` | 27 tests: verdicts, catalog plan, ERC-8021 round-trip, x402 challenge, transfer receipt, parallel payment replays on both rails. The x402 challenge test calls the hosted facilitator, so it needs network | No |
 | `npm run typecheck` | `tsc --noEmit` | No |
 | `npm run check:dry -- @handle` | Prints a practice verdict | No |
 | `npm run dev` | Worker on localhost. Practice mode unless `DRY_RUN=false` | No, while `DRY_RUN=true` |
 | `npm run register:8004 -- --dry-run` | Prints the tagged `register` transaction. Already broadcast; see the tx above | No |
 | `npm run deploy` | Cloudflare Workers. Needs the Standard usage model | Deploy only |
 
-To take live payments from a fresh deploy: set `AGENT_PRIVATE_KEY` for `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08` as a Wrangler secret, set `X402_API_KEY` from [x402.celo.org](https://x402.celo.org), set `DRY_RUN=false` and `AGENT_ID=10045`, create the D1 database (`npm run db:migrate`), and deploy. The key is not in this repo. Fund the wallet with USDT (or USDC / USAT if `BUY_TOKEN` changes). About $0.03 of the $0.08 fee is the six data calls at the 6 Nov catalog quotes.
+To take live payments from a fresh deploy: set `AGENT_PRIVATE_KEY` for `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08` as a Wrangler secret, set `X402_API_KEY` from [x402.celo.org](https://x402.celo.org), set `DRY_RUN=false` and `AGENT_ID=10045`, create the D1 database and apply both migrations (`npm run db:migrate`, before every deploy that adds one), and deploy. The key is not in this repo. Fund the wallet with USDT (or USDC / USAT if `BUY_TOKEN` changes). About $0.03 of the $0.08 fee is the six data calls at the 6 Nov catalog quotes.
 
 Unpaid live call:
 
@@ -232,7 +234,7 @@ pay-small-check/
 ├── src/lib/analyze.ts      # Safe / Caution / Risky
 ├── src/x402-seller.ts      # buyer fee via https://api.x402.celo.org
 ├── scripts/register-8004.ts
-└── migrations/             # D1 receipts
+└── migrations/             # D1 receipts and payment reservations
 ```
 
 ## Known limits
@@ -242,6 +244,7 @@ pay-small-check/
 - x402 payments do not carry `celo_aac08e9358f3`. Use the PayTo address for those.
 - The complaint-search payload is whatever the gateway returns. A shape this app cannot read is a gap, not a clean bill of health.
 - A paid call is not automatically repeated after a timeout or `settle_uncertain`.
+- A transfer is not bound to the person who sent it. Whoever submits a matching transaction hash first gets the check.
 
 ## License
 
