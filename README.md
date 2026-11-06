@@ -7,6 +7,8 @@
 
 > Check the vendor on X before you send the money.
 
+Judge run-through: [JUDGES.md](JUDGES.md).
+
 A buyer pastes an X handle. Pay Small Check charges **$0.08** on Celo, buys that account's public record from [buy](https://usebuy.ai), and returns **Safe**, **Caution**, or **Risky** with the posts the verdict came from.
 
 Built for [Agents on Open Rails](https://www.loops.house/agents-on-open-rails) (deadline Mon 9 Nov 2026, 09:00 GMT). Track: **Build with buy**.
@@ -22,6 +24,83 @@ Built for [Agents on Open Rails](https://www.loops.house/agents-on-open-rails) (
 | PayTo / agent wallet | [`0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`](https://celoscan.io/address/0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08) |
 | ERC-8021 code | `celo_aac08e9358f3` |
 | Buyer price | **$0.08** (USDT, USDC, or USA₮ over x402; USDT or cUSD by transfer) |
+
+## For judges: verify in 60 seconds
+
+Checked against the live deployment on 6 Nov 2026.
+
+1. Open the app: https://pay-small-check.ahmardchain.workers.dev
+2. Open the proof page: https://pay-small-check.ahmardchain.workers.dev/proof (`/proof` redirects to `/proof/`). The receipt list was empty at check time. New paid checks show up here.
+3. Open the registration file: https://pay-small-check.ahmardchain.workers.dev/agent.json — agent id **10045**, wallet `eip155:42220:0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`, code `celo_aac08e9358f3`.
+4. Open the public config: https://pay-small-check.ahmardchain.workers.dev/api/config — `dryRun` is `false`, `priceUsd` is `"0.08"`, `payTo` and `agentPayer` are `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`, `agentId` is `"10045"`, six calls are listed.
+5. Open the registration transaction: https://celoscan.io/tx/0x56926cb9a3faba200070350065c04ba7ec0ae2378670428b6df95ea2a940f9c6 — status success, `register` on the Identity Registry, ERC-721 token id **10045** minted to `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`. The input data ends with the attribution tag. Hex of `celo_aac08e9358f3` is `63656c6f5f616163303865393335386633`, then length `11`, schema `00`, then the `8021` marker repeated:
+
+```text
+63656c6f5f616163303865393335386633110080218021802180218021802180218021
+```
+
+6. PayTo for the buyer's fee, and the wallet that pays buy, are the same address: [`0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`](https://celoscan.io/address/0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08).
+
+Unpaid check. This does not spend. It returned HTTP 402 with a `PAYMENT-REQUIRED` header (x402 version 2, three accepts, each `80000` on `eip155:42220`, PayTo the wallet above):
+
+```bash
+curl -i -X POST https://pay-small-check.ahmardchain.workers.dev/api/checks \
+  -H 'content-type: application/json' -H 'accept: application/json' \
+  -d '{"handle":"celo"}'
+```
+
+## Demo flow (90 seconds)
+
+1. Open https://pay-small-check.ahmardchain.workers.dev on a phone or a narrow window.
+2. Paste an X handle. The field accepts `@name` or `name`.
+3. Choose USDT or cUSD. The fee shown is $0.08.
+4. Pay. In MiniPay that is a stablecoin transfer and the network fee comes out of the same coin. In a wallet that can sign typed data, USDT can be a gasless x402 signature. cUSD is always a transfer.
+5. Wait. The agent buys six X reads from buy, then the page stamps **Safe**, **Caution**, or **Risky**, with the reasons and links.
+6. Open **Open the public receipt**. That is `/proof/?id=…`. The same row is on https://pay-small-check.ahmardchain.workers.dev/proof/.
+
+Practice mode is not what the live site does. A local `npm run dev` with the committed `DRY_RUN=true` stamps a verdict from sample posts and says so.
+
+## What's real (not mocked)
+
+| Piece | State |
+|---|---|
+| Live site `dryRun: false`, price $0.08, PayTo, agent 10045 | Real. Read them on [/api/config](https://pay-small-check.ahmardchain.workers.dev/api/config) |
+| ERC-8004 registration, agent 10045, tag in the calldata | Real. [Transaction](https://celoscan.io/tx/0x56926cb9a3faba200070350065c04ba7ec0ae2378670428b6df95ea2a940f9c6) |
+| Unpaid `POST /api/checks` → 402 `PAYMENT-REQUIRED` for USDT, USDC, USA₮ | Real. Curl above |
+| Six buy routes (profile, about, posts, replies, followers, complaint search) | Real endpoints on `gateway.usebuy.ai`, each quoted at $0.005 on 6 Nov 2026. A live check pays them. This README does not paste a settled buy hash, because [/api/receipts](https://pay-small-check.ahmardchain.workers.dev/api/receipts) was `{ "receipts": [] }` when checked |
+| Buyer payments and buy transaction hashes on `/proof` | The page is real. Counts are not invented here. They show up as people pay |
+| `@safevendor`, `@cautionvendor`, `@riskyvendor` | Sample posts, labeled practice. Only when `DRY_RUN=true` (local default in `wrangler.jsonc`). Not the live site |
+| WhatsApp | Coming-soon page at `/whatsapp/`. The field is disabled. Nothing is uploaded. No WhatsApp data source |
+| Instagram | Not built. Named as a later phase |
+| A guarantee the vendor will deliver | Not what this is. The verdict is a reading of public posts |
+
+## Build with buy: judging criteria map
+
+| Criterion | Where to look |
+|---|---|
+| Problem solved | A buyer is about to pay a vendor they only know from X. The app returns Safe, Caution, or Risky with links before that payment |
+| Depth of integration: verified paid calls into services this project does not control | One check buys six capabilities from the [buy gateway](https://gateway.usebuy.ai/v1/catalog). Each is its own x402 payment on Celo. The gateway PayTo is `0x20faAca5F980E29639A0FCC6dcA6988E18ed333B`, not this app |
+| Growth for those services | Six calls per check, about $0.03 of catalog price at the 6 Nov 2026 quotes ($0.005 × 6), not one repeated cheap call. A missing or unreadable complaint search cannot be scored Safe |
+| Independent users are a qualifier | Any existing Celo wallet can pay (MiniPay transfer, or an x402 signature). No count is claimed here. Paid checks are collected on [/proof](https://pay-small-check.ahmardchain.workers.dev/proof/) |
+| Proof of payment | `/proof` stores the buyer transaction and each buy transaction hash. The list was empty at the last check; do not treat this README as a substitute for that page |
+| PayTo | `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`. x402 settlements cannot carry the attribution tag, so this address is the identifier. It is also `payTo` on the live 402 |
+| ERC-8004 required | Agent **10045**, registry `eip155:42220:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`, [registration tx](https://celoscan.io/tx/0x56926cb9a3faba200070350065c04ba7ec0ae2378670428b6df95ea2a940f9c6). The tag `celo_aac08e9358f3` is on that calldata. The same code is appended to MiniPay transfer calldata |
+
+## Reproduce locally
+
+No wallet and no spend:
+
+```bash
+npm install
+npm test
+npm run check:dry -- @riskyvendor
+```
+
+`npm test` does not call the network for a payment. `check:dry` prints a practice verdict for `@riskyvendor` and says the posts are a sample.
+
+## AI usage & prior work disclosure
+
+This project was written during Agents on Open Rails with AI coding assistance. There was no prior product code. The repository started from the MIT license.
 
 ## What it does in one sentence
 
@@ -104,19 +183,6 @@ The receipt API was empty when this page was checked on 6 Nov 2026. The registra
 | Calldata suffix | `celo_aac08e9358f3` then `0x11 0x00` then the ERC-8021 marker |
 
 The registration file the transaction points at is live and lists the same wallet, the same code, and `registrations[].agentId = 10045`.
-
-## For the Build with buy track
-
-| What the track asks | Where it is |
-|---|---|
-| A real buyer's problem | Someone in Nigeria is about to pay a vendor they found on X |
-| Paid calls into a service this project does not run | Six buy capabilities, each its own x402 payment on Celo mainnet |
-| Not one cheap call repeated | Profile, about, posts, replies, followers, and a complaint search. Skipping the complaint search blocks a Safe verdict |
-| Proof of payment | [/proof](https://pay-small-check.ahmardchain.workers.dev/proof) stores the buyer transaction and each buy transaction |
-| A wallet a person already has | MiniPay transfer (USDT or cUSD, fee in that stablecoin) or a gasless x402 signature. No new wallet is required to try the page |
-| ERC-8004 identity | Agent **10045**, [registration tx](https://celoscan.io/tx/0x56926cb9a3faba200070350065c04ba7ec0ae2378670428b6df95ea2a940f9c6) |
-| ERC-8021 where a tag can be attached | `celo_aac08e9358f3` on `register` and on MiniPay transfers. x402 uses PayTo instead |
-| Celo mainnet only | Chain id 42220. A transfer receipt from any other chain is rejected |
 
 ## Try it
 
