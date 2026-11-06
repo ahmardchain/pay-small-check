@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Instagram is a paid channel on the same $0.08 fee. The 6 Nov 2026 catalog quotes are $0.031, or $0.038 when a post shortcode adds the comment call.
+- Facebook is a disabled coming-soon choice and returns 501. An unsupported channel, including WhatsApp, returns 400.
 - One payment buys one check. Transfer hashes and x402 authorizations are reserved in D1 (`payment_claims`, migration `0002`) before the first paid buy call, so replays get `409` and spend nothing.
 - Replay tests for both payment rails.
 - README restructured; logo, screenshots, CI workflow, submission kit, demo script, and launch posts added.

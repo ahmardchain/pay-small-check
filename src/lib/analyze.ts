@@ -1,3 +1,5 @@
+import type { CheckChannel } from "./capabilities.js";
+import { instagramProfileUrl } from "./handles.js";
 import { accountLink, parseTime, postLink, type AccountFacts, type PostFacts } from "./normalize.js";
 
 export type Verdict = "safe" | "caution" | "risky";
@@ -30,6 +32,8 @@ export interface VendorSnapshot {
     followers: boolean;
     mentions: boolean;
   };
+  /** Set when a search came back but did not name this account. */
+  mentionCoverage?: "unknown";
 }
 
 export interface Analysis {
@@ -91,16 +95,22 @@ function sameAuthor(post: PostFacts, handle: string): boolean {
   return post.handle.toLowerCase() === handle.toLowerCase();
 }
 
-export function analyzeVendor(handle: string, snapshot: VendorSnapshot, now = new Date()): Analysis {
+export function analyzeVendor(
+  handle: string,
+  snapshot: VendorSnapshot,
+  now = new Date(),
+  channel: CheckChannel = "x",
+): Analysis {
   const signals: Signal[] = [];
   const evidence: Evidence[] = [];
   let score = 0;
   const profile = snapshot.profile;
 
+  const onInstagram = channel === "instagram";
   evidence.push({
     kind: "profile",
-    label: `@${handle} on X`,
-    url: accountLink(handle),
+    label: `@${handle} on ${onInstagram ? "Instagram" : "X"}`,
+    url: onInstagram ? instagramProfileUrl(handle) : accountLink(handle),
   });
 
   if (!profile) {
@@ -164,7 +174,7 @@ export function analyzeVendor(handle: string, snapshot: VendorSnapshot, now = ne
       title: `${followers.toLocaleString("en-US")} followers`,
       detail:
         following !== undefined
-          ? `Following ${following.toLocaleString("en-US")}. Posts on the profile: ${(profile.postsCount ?? 0).toLocaleString("en-US")}.`
+          ? `Following ${following.toLocaleString("en-US")}. Posts on the profile: ${profile.postsCount === undefined ? "unknown" : profile.postsCount.toLocaleString("en-US")}.`
           : "Following count was not in the profile payload.",
     });
   }
@@ -267,11 +277,17 @@ export function analyzeVendor(handle: string, snapshot: VendorSnapshot, now = ne
     });
   } else {
     const sample = snapshot.followers.filter((account) => account.handle.toLowerCase() !== handle.toLowerCase());
-    if (sample.length < 5) {
+    const noHistory = sample.every(
+      (account) => account.followers === undefined && account.following === undefined && account.postsCount === undefined,
+    );
+    if (sample.length < 5 || noHistory) {
       signals.push({
         tone: "info",
-        title: "Follower sample is small",
-        detail: `${sample.length} follower profile${sample.length === 1 ? "" : "s"} came back, which is too few to judge.`,
+        title: sample.length < 5 && !noHistory ? "Follower sample is small" : "Follower history is insufficient",
+        detail:
+          sample.length < 5 && !noHistory
+            ? `${sample.length} follower profile${sample.length === 1 ? "" : "s"} came back, which is too few to judge.`
+            : `${sample.length} follower profiles were parsed, but sufficient counts/history are unavailable; quality was not scored.`,
       });
     } else {
       const low = sample.filter((account) => lowQualityFollower(account, now)).length;
@@ -305,11 +321,19 @@ export function analyzeVendor(handle: string, snapshot: VendorSnapshot, now = ne
     : snapshot.mentions.filter((post) => !sameAuthor(post, handle) && isComplaint(post.text));
   if (snapshot.gaps.mentions) {
     score += 2;
-    signals.push({
-      tone: "warn",
-      title: "Complaint search was not read",
-      detail: "A safe verdict needs this search. It failed or came back in an unknown shape.",
-    });
+    signals.push(
+      snapshot.mentionCoverage === "unknown"
+        ? {
+            tone: "warn",
+            title: "Complaint coverage is unknown",
+            detail: "The search results did not explicitly name this account, so they were not scored as complaints. This is not a clean bill of health.",
+          }
+        : {
+            tone: "warn",
+            title: "Complaint search was not read",
+            detail: "A safe verdict needs this search. It failed or came back in an unknown shape.",
+          },
+    );
   } else if (complaints.length === 0) {
     signals.push({
       tone: "good",

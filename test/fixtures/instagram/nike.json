@@ -1,0 +1,829 @@
+{
+  "profile": {
+    "username": "nike",
+    "full_name": "Nike",
+    "biography": "Just Do It.",
+    "is_verified": true,
+    "edge_followed_by": {
+      "count": 290821630
+    },
+    "edge_follow": {
+      "count": 269
+    },
+    "edge_owner_to_timeline_media": {
+      "count": 0,
+      "edges": []
+    }
+  },
+  "about": {
+    "data": {
+      "user": {
+        "username": "nike",
+        "full_name": "Nike",
+        "biography": "Just Do It.",
+        "is_verified": true,
+        "id": "13460080"
+      }
+    }
+  },
+  "posts": {
+    "data": {
+      "count": 12,
+      "items": [
+        {
+          "code": "DfZ4N5cls24",
+          "id": "4024494987672997304",
+          "like_count": 18064,
+          "caption": {
+            "text": "Nike and Carhartt WIP reunite for Fall/Winter 26. Purpose-built design, made for everyday life. \n\nLaunching exclusively through Carhartt WIP November 12. Global release on SNKRS and at select retailers November 20."
+          },
+          "user": {
+            "username": "nike"
+          }
+        },
+        {
+          "code": "DfLpjWZm1h0",
+          "id": "4020489841498871924",
+          "like_count": 88748,
+          "caption": {
+            "text": "Some rings happen fast.\n\nOnly two years into their existence as a franchise, the Golden State Valkyries are the 2026 WNBA Champions."
+          },
+          "user": {
+            "username": "nike"
+          }
+        },
+        {
+          "code": "DfEAmf9P2yM",
+          "id": "4018339413175004300",
+          "like_count": 26121,
+          "caption": {
+            "text": "How refreshing. A 57-year thirst has been quenched."
+          },
+          "user": {
+            "username": "nike"
+          }
+        },
+        {
+          "code": "De-XRdaPg2A",
+          "id": "4016750272540708224",
+          "like_count": 106448,
+          "caption": {
+            "text": "Queen for a third time, @alexiaputellas."
+          },
+          "user": {
+            "username": "nike"
+          }
+        },
+        {
+          "code": "De1uJmpqUcb",
+          "id": "4014317612986615579",
+          "like_count": 15602,
+          "caption": {
+            "text": "The jacket does work, at least that much is clear.\n\nNike Tech SF3 is a waterproof rain jacket. And actually, it gets softer the more you wear it.\n\nAvailable starting 11.2."
+          },
+          "user": {
+            "username": "nsw"
+          }
+        },
+        {
+          "code": "De0HqGihUYv",
+          "id": "4013866847459165743",
+          "like_count": 166634,
+          "caption": {
+            "text": "Nothing is given in the City of Brotherly Love. A new chapter begins in Philly with a simple declaration."
+          },
+          "user": {
+            "username": "nike"
+          }
+        },
+        {
+          "code": "DeySgo5Bn_M",
+          "id": "4013351625707388876",
+          "like_count": 295688,
+          "caption": {
+            "text": "Nike x @mumbaiindians. The stage is set 🏏"
+          },
+          "user": {
+            "username": "nike"
+          }
+        },
+        {
+          "code": "Dek_RAKjMDJ",
+          "id": "4009607813604884681",
+          "like_count": 44578,
+          "caption": {
+            "text": "Since 2004, the Doernbecher Freestyle initiative has worked with hundreds of kids to bring their stories to life through their own signature Nike shoes that will benefit their community.\n\nFor Year 22, six kids from the OHSU Doernbecher Children’s Hospital collaborated with Nike employee volunteers to create one-of-a-kind sneakers that are sold to benefit other kids just like them.\n\nOwen’s passion for dirt biking shows up in the mud-splatter pattern that extends from the toe cap on his Air Max 1/"
+          },
+          "user": {
+            "username": "nike"
+          },
+          "carousel_media": [
+            {
+              "id": "4009607237074997253",
+              "caption": {
+                "text": "Since 2004, the Doernbecher Freestyle initiative has worked with hundreds of kids to bring their stories to life through their own signature Nike shoes that will benefit their community."
+              }
+            },
+            {
+              "id": "4009607239985796236",
+              "caption": {
+                "text": "For Year 22, six kids from the OHSU Doernbecher Children’s Hospital collaborated with Nike employee volunteers to create one-of-a-kind sneakers that are sold to benefit other kids just like them."
+              }
+            },
+            {
+              "id": "4009607244540884998",
+              "caption": {
+                "text": "Owen’s passion for dirt biking shows up in the mud-splatter pattern that extends from the toe cap on his Air Max 1/97."
+              }
+            },
+            {
+              "id": "4009607255202973654",
+              "caption": {
+                "text": "Aurora reimagined her Structure Plus as her own dream hotel in Japan. She chose a soft, faux fur on the collar representing carpets and a room key charm bracelet."
+              }
+            },
+            {
+              "id": "4009607265604666822",
+              "caption": {
+                "text": "Royce competes in team bull roping, just like his parents. This family tradition is reflected in the braided laces; his favorite belt has been recreated on the ankle strap of his AF1 Mid."
+              }
+            },
+            {
+              "id": "4009607269245276014",
+              "caption": {
+                "text": "Charlye’s ACG Rufus reflects her outdoorsy spirit and has a textured green swoosh that reminds her of moss. The UV-activated upper reveals a new color and hidden graphics."
+              }
+            },
+            {
+              "id": "4009607269639769815",
+              "caption": {
+                "text": "Kamoryn’s GT Future has a color-fading pink and purple upper that he can see with his specific color-blindness. The goldfish details throughout nod to Kamoryn being under anesthesia post-surgery and seeing the animal swimming through the walls."
+              }
+            },
+            {
+              "id": "4009607274899363861",
+              "caption": {
+                "text": "Avery’s Air Jordan 11 Low IE has a midsole full of characters Avery drew herself, representing all the cute aliens she designed, with a main character plushie she named “Greg.”"
+              }
+            }
+          ]
+        },
+        {
+          "code": "Dehl7Xohfah",
+          "id": "4008651950882420385",
+          "like_count": 199446,
+          "caption": {
+            "text": "Not everyone fits in.\n\nRaffle opens tomorrow at 7AM PST.\n\nhttps://yachty.shop\n\ndir. by me and @camhicks_"
+          },
+          "user": {
+            "username": "lilyachty"
+          }
+        },
+        {
+          "code": "DeXh9YDSac8",
+          "id": "4005819746817255228",
+          "like_count": 48567,
+          "caption": {
+            "text": "@zhengqinwen_tennis claims her first WTA 1000 title in Beijing. A winner’s name, etched on home soil."
+          },
+          "user": {
+            "username": "nike"
+          }
+        },
+        {
+          "code": "DePzV26vLFB",
+          "id": "4003644396204241217",
+          "like_count": 78486,
+          "caption": {
+            "text": "Five MVPs.\nAt some point, it stops being a debate and starts being a pattern.\nCongrats, @aja22wilson"
+          },
+          "user": {
+            "username": "nike"
+          }
+        },
+        {
+          "code": "DePopGlnxXJ",
+          "id": "4003597340188284361",
+          "like_count": 2239093,
+          "caption": {
+            "text": "Two worlds. One force.\n\nNike Nigo x J-Hope Air Force 1 launches 10.17 on humanmade.jp, and 10.22 globally."
+          },
+          "user": {
+            "username": "nsw"
+          }
+        }
+      ]
+    }
+  },
+  "followers": {
+    "data": {
+      "count": 38,
+      "items": [
+        {
+          "id": "32099795311",
+          "username": "moombmomd",
+          "full_name": "Moomb MoMd",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "38855007868",
+          "username": "emi.comi_13",
+          "full_name": "Emilio Comite",
+          "is_verified": false,
+          "has_anonymous_profile_picture": true
+        },
+        {
+          "id": "37900780970",
+          "username": "mvs_s00",
+          "full_name": "MVSS🥷💭",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "78193042969",
+          "username": "rukaiya65740",
+          "full_name": "Rukaiya",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "70280266982",
+          "username": "moudi_krm__07",
+          "full_name": "😝🤙",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "68991886565",
+          "username": "adem7934adem",
+          "full_name": "Adem Adem",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "69318590170",
+          "username": "hendriksthecreator",
+          "full_name": "Dima Andreev",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "19167705482",
+          "username": "cambo.gold978",
+          "full_name": "goldz?",
+          "is_verified": false,
+          "has_anonymous_profile_picture": true
+        },
+        {
+          "id": "80344516574",
+          "username": "_mohamed_rami_halaimia_",
+          "full_name": "ru_ussi",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "23654648085",
+          "username": "lara.coutinho09",
+          "full_name": "Priv.Lara🔐",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "23857396868",
+          "username": "csrocks.04",
+          "full_name": "Chandan Sharma",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "61652166137",
+          "username": "danilodantasde.oliveira",
+          "full_name": "Danilo Dantas",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "70935280755",
+          "username": "marianicolesolis_",
+          "full_name": "Maria Nicole",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "50439659622",
+          "username": "eomsoan",
+          "full_name": "",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "76235124117",
+          "username": "adi_zzz123",
+          "full_name": "adii",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "59677512916",
+          "username": "saeb_mahmoodian",
+          "full_name": "saeb",
+          "is_verified": false,
+          "has_anonymous_profile_picture": true
+        },
+        {
+          "id": "63764829743",
+          "username": "passo.daerika",
+          "full_name": "Passo da Erika",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "49649971042",
+          "username": "mr_ahmadi_546",
+          "full_name": "ZAHID",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "12781378346",
+          "username": "wertynaza",
+          "full_name": "назар",
+          "is_verified": false,
+          "has_anonymous_profile_picture": true
+        },
+        {
+          "id": "68448512737",
+          "username": "alunchwithluna",
+          "full_name": "Luna",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "61966223853",
+          "username": "auriprime_38",
+          "full_name": "aurora soldani",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "59494535624",
+          "username": "yupieee_x",
+          "full_name": "",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "53165803858",
+          "username": "b7division",
+          "full_name": "B7",
+          "is_verified": false,
+          "has_anonymous_profile_picture": true
+        },
+        {
+          "id": "49637912133",
+          "username": "egidee83",
+          "full_name": "Egidee",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "48043449067",
+          "username": "cgchente",
+          "full_name": "Scott Flîght",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "78514587439",
+          "username": "x_yahia_x06",
+          "full_name": "𝔂𝓪𝓱𝓲𝓪🥷❤️‍🔥",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "78268909568",
+          "username": "roro2pa",
+          "full_name": "Lose \"Roro\" Tupa",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "74672282148",
+          "username": "2takt_olli",
+          "full_name": "Olli",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "56512907379",
+          "username": "sblumlum",
+          "full_name": "sblumlum",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "79021608842",
+          "username": "broworldwide",
+          "full_name": "L I F E S T Y L E",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "50542389108",
+          "username": "mirzareebaig",
+          "full_name": "Areeb",
+          "is_verified": false,
+          "has_anonymous_profile_picture": true
+        },
+        {
+          "id": "54142136559",
+          "username": "theertha95443",
+          "full_name": "Theertha",
+          "is_verified": false,
+          "has_anonymous_profile_picture": true
+        },
+        {
+          "id": "13662177368",
+          "username": "far.oukbt",
+          "full_name": "FAROUK",
+          "is_verified": false,
+          "has_anonymous_profile_picture": true
+        },
+        {
+          "id": "66397758622",
+          "username": "ahmedelsadig8266",
+          "full_name": "Āĥmĕđ Ĕłśāđĭğ Mūśā",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "79020112057",
+          "username": "yoelrodriguzzr",
+          "full_name": "Yoel Rodriguez",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "51642100037",
+          "username": "00queirooz",
+          "full_name": "Guilherme QueiroZz",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "70433325097",
+          "username": "gor.harutyunyan16",
+          "full_name": "Gor",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        },
+        {
+          "id": "64664443943",
+          "username": "wtff_is_this_",
+          "full_name": "",
+          "is_verified": false,
+          "has_anonymous_profile_picture": false
+        }
+      ]
+    }
+  },
+  "mentions": {
+    "data": {
+      "count": 20,
+      "items": [
+        {
+          "code": "DfaFJGFvdva",
+          "caption": {
+            "text": "stop tolerating their disrespect just because you’re afraid of letting them go and starting over \n\n#single #dating #breakup #heartbreak #relationships"
+          },
+          "user": {
+            "username": "stayforthestoriesofficial"
+          }
+        },
+        {
+          "code": "DfZz8GlBgqE",
+          "caption": {
+            "text": "1 pair for $2 good quality design shoes"
+          },
+          "user": {
+            "username": "chinaglamora_"
+          }
+        },
+        {
+          "code": "DfZB374IHLP",
+          "caption": {
+            "text": "A viral story about a woman allegedly selling her boyfriend’s expensive sneaker collection for just $250 has sparked a debate online. According to the story, she became frustrated after her boyfriend repeatedly ignored her while giving attention to other women on social media. She reportedly decided to sell his sneakers as revenge, despite the collection supposedly being worth thousands of dollars. While some internet users found the situation amusing, others criticized the decision and question"
+          },
+          "user": {
+            "username": "pro.facts"
+          }
+        },
+        {
+          "code": "DfX4Q6CPh7S",
+          "caption": {
+            "text": "FULL VID ON MY YOUTUBEE 📺\n#sneaker\n#meetup #reseller #gonewrong #wfuze @chrissbtrippin"
+          },
+          "user": {
+            "username": "fuzeresells"
+          }
+        },
+        {
+          "code": "DfXs8_QMqNB",
+          "caption": {
+            "text": "No dejes que te estafen a ti!😂"
+          },
+          "user": {
+            "username": "mykefits"
+          }
+        },
+        {
+          "code": "DfaRHGXkwvt",
+          "caption": {
+            "text": "It is what it is. \n#motivation #nike #running"
+          },
+          "user": {
+            "username": "diljeetdosanjhtaylor"
+          }
+        },
+        {
+          "code": "DfVfqDuRBb6",
+          "caption": {
+            "text": "Y’all be so happy and proud to get shoes early… whole time you just paid over retail for something that isn’t even real 🌚🫣\n\n#sneakers #fakesneakers #sneakerhead #jordans #nike"
+          },
+          "user": {
+            "username": "deefootwork"
+          }
+        },
+        {
+          "code": "DfUdfh0hoDC",
+          "caption": {
+            "text": "Nike ne India ke liye shoe banaya, sirf 55 din mein."
+          },
+          "user": {
+            "username": "vikaskothari_official"
+          }
+        },
+        {
+          "code": "DfUOEiZhhLE",
+          "caption": {
+            "text": "He says some fraudsters order original Nike shoes worth Rs 10,000 from online stores. He says they then buy a similar-looking fake for around Rs 340, one that looks close enough to pass as the original. He alleges the fake is sent back as a return in place of the original pair.\n\nHe alleges that warehouse staff check the tag and accept such returns. He says the fake pairs then go back into stock at platforms like Amazon, Flipkart or Myntra. He calls it a return fraud that ordinary buyers end up p"
+          },
+          "user": {
+            "username": "startup.ln"
+          }
+        },
+        {
+          "code": "DfQSZt1y-rC",
+          "caption": {
+            "text": "As requested by many of you, here is a very condensed version of the scam incident I briefly mentioned in my latest Instagram post where I lost my entire life savings. Please spread the word to your friends and family of how realistic, deceptive and pervasive these scams are getting. I left out lots of details regarding more extensive efforts to check authentication and other tactics they used but this is an overview of what to look out for!!\n\nIf you are ever unsure about a phone call from your "
+          },
+          "user": {
+            "username": "madimccaw"
+          }
+        },
+        {
+          "code": "DfOFyRZzOeZ",
+          "caption": {
+            "text": "For Australian brands. There’s no such thing as digital marketing, there never has been and there never will be. Let me explain.\n\nHas anyone been wondering what happened to Nike?\n\nTheir market value has dropped by 80% over the last 5 years, and for the first time in 18 years they’re no longer in the S&P 100.\n\nIs there a better example on the impact of brand on business performance, I’ve never seen one. \n\nIn 2020 Nike put a tech CEO in charge, walked away from its retailers, and moved the money o"
+          },
+          "user": {
+            "username": "oli.brands"
+          }
+        },
+        {
+          "code": "DfR4Kjazxrv",
+          "caption": {
+            "text": "The Shocking Truth Behind Fake Products on Amazon & Flipkart! 😱\n\nEver wondered how fake products end up reaching customers through major online marketplaces? 🤯\n\nImagine ordering original Nike shoes worth ₹10,000 but receiving a counterfeit pair instead! 👟\n\nIn this podcast, we uncover a concerning issue in e-commerce — return fraud and product swapping.\n\nSome fraudsters allegedly replace original products with fake ones during returns. When these items aren’t properly verified, they can re-enter "
+          },
+          "user": {
+            "username": "rise_with_rahul"
+          }
+        },
+        {
+          "code": "DfKvE-qS-Sk",
+          "caption": {
+            "text": "where was this page my whole life😭😭😭\n\n#fypppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp #sneakercollection #sneakers #viral #onlineshopping"
+          },
+          "user": {
+            "username": "cultmona"
+          }
+        },
+        {
+          "code": "DfGP-E-kVxy",
+          "caption": {
+            "text": "$300 \"limited\" sneakers online… safe? 👀\n�\n\nHow to check a sneaker listing before you buy: paste the link into VerifAI and it flags the red flags in seconds.\n�\n\nGet VerifAI for iPhone: https://apps.apple.com/us/app/verifai-ai-legit-check-scan/id6760724666\n#sneakers #fakesneakers #legitcheck #sneakerhead"
+          },
+          "user": {
+            "username": "verifai.usa"
+          }
+        },
+        {
+          "code": "DfFXYhIOw3Y",
+          "caption": {
+            "text": "Why is no one talking about this Money STEAL 🤯\n#ad #sneakers #culturecircle \n\n@culturecircle.global @culturecircle_in"
+          },
+          "user": {
+            "username": "culturedrehan"
+          }
+        },
+        {
+          "code": "DfCoSlivuA3",
+          "caption": {
+            "text": "How Nike Saves Millions in Tax Using TWO Brands\n\n#viral #trending #instagramreels #fyp #nike"
+          },
+          "user": {
+            "username": "talkswithrochit"
+          }
+        },
+        {
+          "code": "De_XdnIxyGP",
+          "caption": {
+            "text": "bro offered me $400 😭 | sheet + signup in bio\n\n#fashion #fyp #kakobuy #tjr"
+          },
+          "user": {
+            "username": "telereps"
+          }
+        },
+        {
+          "code": "De9Mk8GphXi",
+          "caption": {
+            "text": "Nike sued him over his brand name… and won. Two years later, Nike put his logo on Niketown London.\n\nClint Ogbenna built Corteiz with a private Instagram, GPS-coordinate drops and zero paid celebrities.\n\nWould you have kept the name, or rebranded after losing to Nike?"
+          },
+          "user": {
+            "username": "danalystt"
+          }
+        },
+        {
+          "code": "De1IUi8Kybb",
+          "caption": {
+            "text": "Nike #evil #company #scandal \nYouTube: Simple Paint"
+          },
+          "user": {
+            "username": "simplepaint_official"
+          }
+        },
+        {
+          "code": "De0I740ieLC",
+          "caption": {
+            "text": "I was scammed by the goat app for $550 on the Stealth Air Force 1 Oregon PE"
+          },
+          "user": {
+            "username": "chasebergey"
+          }
+        }
+      ]
+    }
+  },
+  "replies": {
+    "data": {
+      "additional_data": {
+        "caption": {
+          "text": "Nike and Carhartt WIP reunite for Fall/Winter 26. Purpose-built design, made for everyday life. \n\nLaunching exclusively through Carhartt WIP November 12. Global release on SNKRS and at select retailers November 20."
+        }
+      },
+      "items": [
+        {
+          "id": "18654689722013307",
+          "text": "🔥🔥🔥",
+          "comment_like_count": 4,
+          "child_comment_count": 0,
+          "user": {
+            "username": "houseofheat"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "17919542469462326",
+          "text": "🔥🔥🔥",
+          "comment_like_count": 5,
+          "child_comment_count": 0,
+          "user": {
+            "username": "del.ten"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "17900553294396379",
+          "text": "Yea this collab for me 🔥",
+          "comment_like_count": 5,
+          "child_comment_count": 0,
+          "user": {
+            "username": "thesneakerriculum"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "18102586145059939",
+          "text": "Sheesh 👏👏👏🔥🔥",
+          "comment_like_count": 3,
+          "child_comment_count": 0,
+          "user": {
+            "username": "dansgrids"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "18110402471187393",
+          "text": "Yeah sign me up",
+          "comment_like_count": 6,
+          "child_comment_count": 1,
+          "user": {
+            "username": "jordankeyser"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "18494682526129949",
+          "text": "🔥Nike hart ✔️🤎",
+          "comment_like_count": 4,
+          "child_comment_count": 0,
+          "user": {
+            "username": "gofiguremore"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "18501713014098466",
+          "text": "I love collabs!",
+          "comment_like_count": 3,
+          "child_comment_count": 2,
+          "user": {
+            "username": "officialtrebailey"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "18104679158545773",
+          "text": "This was literally made for me",
+          "comment_like_count": 1,
+          "child_comment_count": 0,
+          "user": {
+            "username": "paanii"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "18138839608654688",
+          "text": "DETROIT GRIT!",
+          "comment_like_count": 6,
+          "child_comment_count": 0,
+          "user": {
+            "username": "acgwzrd"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "18082548176539926",
+          "text": "Never thought I would see a cello case in a Nike campaign 🎻",
+          "comment_like_count": 10,
+          "child_comment_count": 1,
+          "user": {
+            "username": "drrachellebeebe"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "18001192782011845",
+          "text": "Need all pairs ASAP",
+          "comment_like_count": 3,
+          "child_comment_count": 0,
+          "user": {
+            "username": "jpcalha"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "18119772703789419",
+          "text": "Please 🙏🏻",
+          "comment_like_count": 3,
+          "child_comment_count": 0,
+          "user": {
+            "username": "em.johnson"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "17891651106619929",
+          "text": "TOUGH @rah.dunn3",
+          "comment_like_count": 4,
+          "child_comment_count": 0,
+          "user": {
+            "username": "traintotransfer"
+          },
+          "preview_child_comments": []
+        },
+        {
+          "id": "18119244212092371",
+          "text": "@jiioooooo_",
+          "comment_like_count": 3,
+          "child_comment_count": 0,
+          "user": {
+            "username": "hakimlukmaann"
+          },
+          "preview_child_comments": []
+        }
+      ]
+    }
+  }
+}

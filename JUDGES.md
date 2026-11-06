@@ -5,9 +5,9 @@ About 90 seconds on the live app, then two local commands that do not spend. Fac
 ## Click path
 
 1. Open https://pay-small-check.ahmardchain.workers.dev
-   Confirm the page asks for an X handle and shows a $0.08 fee. USDT and cUSD are the choices. WhatsApp is labeled as the next planned platform; its page is a coming-soon stub, not a working check.
+   Confirm the page asks for an X or Instagram handle and shows a $0.08 fee. USDT and cUSD are the choices. Facebook is in the platform list, disabled, and labeled coming soon.
 2. Open https://pay-small-check.ahmardchain.workers.dev/api/config
-   Confirm `dryRun` is `false`, `priceUsd` is `"0.08"`, `agentId` is `"10045"`, `payTo` and `agentPayer` are `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`, `attributionCode` is `celo_aac08e9358f3`, and `calls` has six entries.
+   Confirm `dryRun` is `false`, `priceUsd` is `"0.08"`, `agentId` is `"10045"`, `payTo` and `agentPayer` are `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`, `attributionCode` is `celo_aac08e9358f3`, `calls` has six X entries, `instagramCalls` lists the Instagram reads, and `facebook.status` is `"coming_soon"`.
 3. Open https://pay-small-check.ahmardchain.workers.dev/agent.json
    Confirm `registrations[0].agentId` is `10045` and `services` includes `agentWallet` `eip155:42220:0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`.
 4. Open https://celoscan.io/tx/0x56926cb9a3faba200070350065c04ba7ec0ae2378670428b6df95ea2a940f9c6
@@ -20,8 +20,16 @@ About 90 seconds on the live app, then two local commands that do not spend. Fac
    That is `celo_aac08e9358f3`, then a length byte, schema 0, and the ERC-8021 marker.
 5. Open https://pay-small-check.ahmardchain.workers.dev/proof/
    `/proof` redirects here. The list is the public set of paid checks, each with the buyer's transaction and one Celoscan link per buy call. Counts live there, not in this file.
-6. Open https://pay-small-check.ahmardchain.workers.dev/whatsapp/
-   The input is disabled and the button says coming soon. Nothing on that page is sent to a data provider.
+6. Facebook and an unknown channel do not score a profile.
+
+   ```bash
+   curl -s -o /dev/null -w '%{http_code}\n' -X POST https://pay-small-check.ahmardchain.workers.dev/api/checks \
+     -H 'content-type: application/json' -d '{"channel":"facebook","handle":"shop"}'
+   curl -s -X POST https://pay-small-check.ahmardchain.workers.dev/api/checks \
+     -H 'content-type: application/json' -d '{"channel":"whatsapp","handle":"08030000000"}'
+   ```
+
+   Facebook returns `501` with `not_built`. WhatsApp returns `400` with `unsupported_channel`. Neither call buys data.
 
 ## Commands
 
@@ -66,15 +74,15 @@ npm run check:dry -- @riskyvendor
 
 ## Questions a judge may ask
 
-**Why X first?** Version 1 is the check a buyer can do from a public handle before they pay. The six calls (profile, about, posts, replies, followers, complaint search) all exist on the buy catalog today. That is the whole paid path.
+**Why X and Instagram?** Both have capabilities on the buy catalog. An X check buys six reads (profile, about, posts, replies, followers, complaint search) at $0.005 each on 6 Nov 2026, about $0.030. An Instagram check buys profile (`instagram.profile`, $0.005), account details (`monid.instagram.tikhub.api-v1-instagram-v1-fetch-user-info-by-username`, $0.005), posts (`monid.instagram.tikhub.api-v1-instagram-v2-fetch-user-posts`, $0.007), followers (`monid.instagram.tikhub.api-v1-instagram-v2-fetch-user-followers`, $0.007), and a complaint search (`monid.instagram.tikhub.api-v1-instagram-v2-general-search`, $0.007). That is $0.031. Comments (`monid.instagram.tikhub.api-v1-instagram-v2-fetch-post-comments`, $0.007) run only when the posts payload has a shortcode, which makes $0.038. Both totals are under the $0.08 fee.
 
-**Why is WhatsApp not a real check yet?** There is no WhatsApp source this agent can pay. The page at `/whatsapp/` is a stub: the field is disabled, and a `channel: "whatsapp"` API call returns 501 and does not score a number. Inventing a feed would be a fake check. WhatsApp is the next planned platform after X, but it is not built.
+**Why is Facebook not a real check?** The catalog read on 6 Nov 2026 had no Facebook capabilities. The platform choice is disabled, and `channel: "facebook"` returns 501 and does not score a profile. Inventing a feed would be a fake check. WhatsApp is not a channel: that request returns 400.
 
 **Why is cUSD a transfer, not x402?** The live 402 from this app offers USDT, USDC, and USA₮ only. The hosted facilitator does not settle cUSD. `/api/config` says the same thing. MiniPay also cannot sign the x402 typed-data payload, so the page sends a normal USDT or cUSD transfer and pays the network fee in that coin. The transfer calldata carries `celo_aac08e9358f3`. An x402 settlement cannot, so those payments are identified by PayTo.
 
 **How does a check stop a fake vendor?** It does not freeze their wallet or escrow the buyer's later payment to them. It runs before that payment. Risky means several public complaint posts, a days-old account plus a complaint, or several warning signs together (new account, repeated posts, thin followers). The page shows the links. The buyer decides whether to pay the vendor. A missing complaint search cannot come back Safe.
 
-**What does one check cost?** The buyer pays $0.08 (`80000` atomic USDT, USDC, or USA₮, or the same value in cUSD). The six catalog quotes on 6 Nov 2026 were $0.005 each, about **$0.03** of data, paid by `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08` to the buy gateway (`0x20faAca5F980E29639A0FCC6dcA6988E18ed333B`). The catalog is re-read per check. A quote above $0.02 for one call is not signed.
+**What does one check cost?** The buyer pays $0.08 (`80000` atomic USDT, USDC, or USA₮, or the same value in cUSD) on either channel. X's six catalog quotes on 6 Nov 2026 were $0.005 each, about **$0.030** of data. Instagram's quotes were **$0.031**, or **$0.038** when a post shortcode lets the comment call run. The agent wallet `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08` pays the buy gateway (`0x20faAca5F980E29639A0FCC6dcA6988E18ed333B`). The catalog is re-read per check. A quote above $0.02 for one call is not signed.
 
 **What if a buy call fails?** A call that did not settle is not blindly retried. A timeout or `settle_uncertain` stops the rest of the queue. If nothing settled and nothing could be read, the buyer's x402 payment is not settled and a transfer hash is not consumed, so they can retry. If some calls did settle, the check still returns a verdict from what came back, the fee is taken, and `/proof` lists which calls paid and which failed.
 

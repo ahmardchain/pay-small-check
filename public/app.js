@@ -8,6 +8,8 @@ import {
 } from "./x402.js";
 
 const form = document.querySelector("#check-form");
+const channelSelect = document.querySelector("#channel");
+const handleLabel = document.querySelector("#handle-label");
 const handleInput = document.querySelector("#handle");
 const tokenSelect = document.querySelector("#token");
 const priceLine = document.querySelector("#price");
@@ -40,6 +42,18 @@ function inMiniPay() {
 function setState(text) {
   stateLine.textContent = text;
 }
+
+function channel() {
+  return channelSelect.value === "instagram" ? "instagram" : "x";
+}
+
+function syncChannel() {
+  const instagram = channel() === "instagram";
+  handleLabel.textContent = instagram ? "Instagram username" : "X handle";
+  handleInput.placeholder = instagram ? "@shop.name" : "@shopname";
+}
+
+channelSelect.addEventListener("change", syncChannel);
 
 async function loadConfig() {
   const response = await fetch("/api/config");
@@ -89,7 +103,7 @@ form.addEventListener("submit", async (event) => {
     if (!config) await loadConfig();
     if (config.dryRun) {
       setState("Running the practice check…");
-      const receipt = await postCheck({ handle: handleInput.value, channel: "x" });
+      const receipt = await postCheck({ handle: handleInput.value, channel: channel() });
       render(receipt);
       return;
     }
@@ -114,7 +128,7 @@ async function payByX402() {
   const first = await fetch("/api/checks", {
     method: "POST",
     headers: { "content-type": "application/json", accept: "application/json" },
-    body: JSON.stringify({ handle: handleInput.value, channel: "x" }),
+    body: JSON.stringify({ handle: handleInput.value, channel: channel() }),
   });
   if (first.status !== 402) {
     const body = await first.json();
@@ -141,7 +155,7 @@ async function payByX402() {
     setState("This wallet cannot sign a gasless payment. Sending a transfer instead.");
     return "needs-transfer";
   }
-  setState("Payment signed. Buying the X record…");
+  setState(channel() === "instagram" ? "Payment signed. Buying the Instagram record…" : "Payment signed. Buying the X record…");
   const payload = buildPaymentPayload(required, requirement, authorization, signature);
   const paid = await fetch("/api/checks", {
     method: "POST",
@@ -150,7 +164,7 @@ async function payByX402() {
       accept: "application/json",
       "PAYMENT-SIGNATURE": encodeHeader(payload),
     },
-    body: JSON.stringify({ handle: handleInput.value, channel: "x" }),
+    body: JSON.stringify({ handle: handleInput.value, channel: channel() }),
   });
   const body = await paid.json();
   if (!paid.ok) throw new Error(body.message || "The payment did not settle.");
@@ -179,8 +193,8 @@ async function payByTransfer(symbol) {
   });
   setState("Waiting for the network…");
   await waitForReceipt(hash);
-  setState("Payment confirmed. Buying the X record…");
-  const response = await postCheck({ handle: handleInput.value, channel: "x", paymentTx: hash, token: symbol });
+  setState(channel() === "instagram" ? "Payment confirmed. Buying the Instagram record…" : "Payment confirmed. Buying the X record…");
+  const response = await postCheck({ handle: handleInput.value, channel: channel(), paymentTx: hash, token: symbol });
   render(response);
 }
 

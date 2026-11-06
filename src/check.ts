@@ -1,6 +1,7 @@
 import { createBuyPayer, shouldStopAfter, type BuyCallResult } from "./lib/buy.js";
 import { loadCatalog } from "./lib/catalog.js";
-import { resolvePlan } from "./lib/capabilities.js";
+import { INSTAGRAM_COMMENTS, planFor, resolvePlan, type CheckChannel } from "./lib/capabilities.js";
+import { findInstagramShortcode } from "./lib/normalize.js";
 import { analysisFromCalls } from "./lib/snapshot.js";
 import type { Settings } from "./settings.js";
 
@@ -12,7 +13,12 @@ export interface LiveCheck {
   error?: string;
 }
 
-export async function runLiveCheck(settings: Settings, handle: string, fetchImpl: typeof fetch = fetch): Promise<LiveCheck> {
+export async function runLiveCheck(
+  settings: Settings,
+  handle: string,
+  fetchImpl: typeof fetch = fetch,
+  channel: CheckChannel = "x",
+): Promise<LiveCheck> {
   if (!settings.agentPrivateKey) {
     return { calls: [], warnings: [], analysis: null, charge: false, error: "AGENT_PRIVATE_KEY is not set" };
   }
@@ -28,7 +34,7 @@ export async function runLiveCheck(settings: Settings, handle: string, fetchImpl
       error: error instanceof Error ? error.message : "Could not read the buy catalog",
     };
   }
-  const { calls, missing } = resolvePlan(catalog, handle);
+  const { calls, missing } = resolvePlan(catalog, handle, planFor(channel));
   const warnings = missing.map((id) => `buy catalog has no available capability ${id}`);
   const payer = createBuyPayer({
     privateKey: settings.agentPrivateKey,
@@ -39,13 +45,34 @@ export async function runLiveCheck(settings: Settings, handle: string, fetchImpl
     fetchImpl,
   });
   const results: BuyCallResult[] = [];
+  let stopped = false;
   for (const call of calls) {
     const result = await payer.pay(call);
     result.amount = call.indicativeAtomic ?? null;
     results.push(result);
     if (shouldStopAfter(result)) {
       warnings.push("Stopped after an uncertain buy payment. That call was not retried.");
+      stopped = true;
       break;
+    }
+  }
+  if (channel === "instagram" && !stopped) {
+    const posts = results.find((call) => call.key === "posts");
+    const code = posts?.ok ? findInstagramShortcode(posts.output) : null;
+    if (!code) {
+      warnings.push("Instagram comments were skipped because the posts payload had no shortcode.");
+    } else {
+      const follow = resolvePlan(catalog, code, [INSTAGRAM_COMMENTS]);
+      warnings.push(...follow.missing.map((id) => `buy catalog has no available capability ${id}`));
+      for (const call of follow.calls) {
+        const result = await payer.pay(call);
+        result.amount = call.indicativeAtomic ?? null;
+        results.push(result);
+        if (shouldStopAfter(result)) {
+          warnings.push("Stopped after an uncertain buy payment. That call was not retried.");
+          break;
+        }
+      }
     }
   }
   const settled = results.some((call) => call.settled === true || Boolean(call.txHash));
@@ -59,7 +86,7 @@ export async function runLiveCheck(settings: Settings, handle: string, fetchImpl
       error: "No buy call returned data. Nothing was charged for this check.",
     };
   }
-  const analysis = analysisFromCalls(handle, results);
+  const analysis = analysisFromCalls(handle, results, new Date(), channel);
   return { calls: results, warnings: [...warnings, ...analysis.warnings], analysis, charge: true };
 }
 
