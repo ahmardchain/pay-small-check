@@ -1,78 +1,105 @@
-import { createPublicClient, createWalletClient, http, parseEventLogs } from "viem";
+import { concat, createPublicClient, createWalletClient, encodeFunctionData, http, parseEventLogs } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { celo } from "viem/chains";
-import { agentRegistration, buildRegistrationCall, identityAbi, IDENTITY_REGISTRY } from "../src/identity.js";
-import { settingsFromEnv, USDT } from "../src/settings.js";
+import { withAttribution } from "@celo/attribution-tags";
+import { attributionSuffix } from "../src/lib/attribution.js";
+import { ATTRIBUTION_CODE } from "../src/lib/project.js";
+import { IDENTITY_REGISTRY, TOKENS } from "../src/lib/tokens.js";
 
-const settings = settingsFromEnv(process.env);
-const broadcast = process.argv.includes("--broadcast");
-const document = agentRegistration(settings);
-const uri = dataUri(document);
-const callData = buildRegistrationCall(uri, settings.attributionCode);
+/**
+ * One command:
+ *   AGENT_PRIVATE_KEY=0x... AGENT_URI=https://your.app/agent.json npm run register:8004
+ * Add --dry-run to print the tagged transaction and not broadcast it.
+ *
+ * Gas is paid in USDT via the fee-currency adapter unless GAS_FEE_CURRENCY=celo.
+ */
 
-if (!settings.agentPrivateKey) {
-  console.log(
-    JSON.stringify(
-      {
-        dryRun: true,
-        broadcast: false,
-        note: "No AGENT_PRIVATE_KEY, so this only prints the registration document. Add the key and run again.",
-        attributionCode: settings.attributionCode,
-        identityRegistry: IDENTITY_REGISTRY,
-        chainId: 42220,
-        registration: document,
-      },
-      null,
-      2,
-    ),
-  );
-  process.exit(0);
+const ABI = [
+  {
+    type: "function",
+    name: "register",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "agentURI", type: "string" }],
+    outputs: [{ name: "agentId", type: "uint256" }],
+  },
+  {
+    type: "event",
+    name: "Registered",
+    inputs: [
+      { name: "agentId", type: "uint256", indexed: true },
+      { name: "agentURI", type: "string", indexed: false },
+      { name: "owner", type: "address", indexed: true },
+    ],
+  },
+] as const;
+
+const dryRun = process.argv.includes("--dry-run");
+const configuredUri = process.env.AGENT_URI?.trim() || (process.env.PUBLIC_APP_URL?.trim() ? `${process.env.PUBLIC_APP_URL.trim().replace(/\/$/, "")}/agent.json` : "");
+const uri = configuredUri || (dryRun ? "https://example.com/agent.json" : "");
+const code = (process.env.ATTRIBUTION_CODE?.trim() || ATTRIBUTION_CODE).toLowerCase();
+const rpcUrl = process.env.CELO_RPC_URL?.trim() || "https://forno.celo.org";
+const feeMode = (process.env.GAS_FEE_CURRENCY?.trim() || "USDT").toLowerCase();
+const feeCurrency = feeMode === "celo" ? undefined : feeMode === "usdc" ? TOKENS.USDC.feeCurrency : TOKENS.USDT.feeCurrency;
+
+if (!uri || uri.includes("undefined")) {
+  console.error("Set AGENT_URI or PUBLIC_APP_URL to the public origin that serves /agent.json");
+  process.exit(1);
+}
+if (!configuredUri && dryRun) {
+  console.error("AGENT_URI is unset. Dry run uses https://example.com/agent.json. Set AGENT_URI before broadcasting.");
 }
 
-const account = privateKeyToAccount(settings.agentPrivateKey);
-const preview = {
-  dryRun: !broadcast,
-  address: account.address,
-  attributionCode: settings.attributionCode,
-  identityRegistry: IDENTITY_REGISTRY,
+const data = concat([
+  encodeFunctionData({ abi: ABI, functionName: "register", args: [uri] }),
+  attributionSuffix(code),
+]);
+
+const plan = {
   chainId: 42220,
-  feeCurrency: USDT.asset,
+  identityRegistry: IDENTITY_REGISTRY,
   agentURI: uri,
-  scanAfterMint: "https://8004scan.io/agents/celo/<agentId>",
-  registration: document,
+  attributionCode: code,
+  feeCurrency: feeCurrency ?? "CELO",
+  data,
+  dryRun,
 };
 
-if (!broadcast) {
-  console.log(JSON.stringify({ ...preview, note: "Pass --broadcast to send the tagged register transaction." }, null, 2));
+if (dryRun) {
+  console.log(JSON.stringify(plan, null, 2));
+  console.log("Dry run only. No transaction was sent.");
   process.exit(0);
 }
 
-const publicClient = createPublicClient({ chain: celo, transport: http(settings.rpcUrl) });
-const walletClient = createWalletClient({ account, chain: celo, transport: http(settings.rpcUrl) });
-const hash = await walletClient.sendTransaction({
-  account,
-  chain: celo,
-  to: IDENTITY_REGISTRY,
-  data: callData,
-  feeCurrency: USDT.asset,
+const rawKey = process.env.AGENT_PRIVATE_KEY?.trim();
+if (!rawKey) {
+  console.error("Set AGENT_PRIVATE_KEY. Use --dry-run to print the transaction without a key.");
+  process.exit(1);
+}
+const privateKey = (rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`) as `0x${string}`;
+const account = privateKeyToAccount(privateKey);
+const publicClient = createPublicClient({ chain: celo, transport: http(rpcUrl) });
+const wallet = createWalletClient({ account, chain: celo, transport: http(rpcUrl) }).extend(withAttribution(code));
+
+const hash = await wallet.writeContract({
+  address: IDENTITY_REGISTRY,
+  abi: ABI,
+  functionName: "register",
+  args: [uri],
+  feeCurrency,
 });
+console.log("Submitted", hash);
 const receipt = await publicClient.waitForTransactionReceipt({ hash });
-const events = parseEventLogs({ abi: identityAbi, logs: receipt.logs, eventName: "Registered" });
-const agentId = events[0]?.args.agentId?.toString() ?? null;
+const [registered] = parseEventLogs({ abi: ABI, eventName: "Registered", logs: receipt.logs });
 console.log(
   JSON.stringify(
     {
-      hash,
-      agentId,
-      explorer: `https://celoscan.io/tx/${hash}`,
-      scan: agentId ? `https://8004scan.io/agents/celo/${agentId}` : null,
-      attributionCode: settings.attributionCode,
+      agentId: registered?.args.agentId?.toString() ?? null,
+      owner: account.address,
+      txHash: hash,
+      agentURI: uri,
+      next: "Set AGENT_ID to this id and redeploy so /agent.json includes registrations.",
     },
     null,
     2,
   ),
 );
-
-function dataUri(value: unknown): string {
-  return `data:application/json;base64,${Buffer.from(JSON.stringify(value)).toString("base64")}`;
-}

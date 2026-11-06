@@ -1,104 +1,220 @@
-# Pay-Small-Check
+# Pay Small Check
 
-A person pastes the Instagram handle, WhatsApp number, or shop link a vendor sent them, before they pay that vendor. The agent buys public traces it does not own — Instagram, X, Reddit, a one-minute browser, and a Cencori verdict — then returns **low**, **medium**, or **high**, the evidence, and the receipt for each paid call.
+A buyer in Nigeria is about to pay a vendor they only know from X. Pay Small Check takes the handle, pays for that account's public record, and returns **Safe**, **Caution**, or **Risky** with the posts the verdict came from.
 
-It does not read WhatsApp chats. A number is only searched for on public posts.
+Version 1 reads X only. WhatsApp is a stub: a person can see where a pasted number or chat would go, and nothing is sent to a data provider. Instagram is a later phase.
 
-## Track
+## The problem
 
-Build with buy, Agents on Open Rails. Rules and deadline (Mon 9 Nov 2026, 09:00 GMT) — see [loops.house/agents-on-open-rails](https://www.loops.house/agents-on-open-rails).
+Small buyers pay vendors from X and WhatsApp every day. The usual check is a scroll through the profile and a hope that "scam", "didn't deliver", or "fake" is not sitting in the replies. That scroll misses account age, thin followers, repeated posts, and complaints that are not on the first screen.
 
-Celo mainnet only (chain id 42220). The buy client is `@celo/buy-core` `payingFetch`, aimed at `https://gateway.usebuy.ai`. The page is an x402 seller on `https://api.x402.celo.org`. Users pay a check in cNGN or USD₮. The agent pays buy in USDC, USD₮, or USA₮. The gateway does not accept cNGN.
+Pay Small Check makes that check a paid, receipted step. The buyer pays a small stablecoin fee. The agent spends part of it on real data it does not own.
 
-## What works without funds, and what does not
+## How it works
 
-Do a demo check with no wallet and no spend — see `npm test` and `npm run dev`. `BUY_MODE` defaults to `mock` and `PAYMENT_MODE` defaults to `open`.
+```text
+Buyer  ->  paste @handle  ->  pay on Celo
+Agent  ->  six paid calls to buy (usebuy.ai) over x402
+Agent  ->  read profile, posts, replies, followers, complaints
+Buyer  <-  Safe / Caution / Risky, with links
+Public <-  /proof receipt: buyer tx + each buy tx
+```
 
-| Piece | Without funds | Needs a funded wallet |
+One live check buys six capabilities from the [buy gateway](https://gateway.usebuy.ai). URLs come from the live catalog at request time (`GET https://gateway.usebuy.ai/v1/catalog`). These ids and URLs were available on 6 Nov 2026, each quoted at about **$0.005** in USDC, USDT, or USAT:
+
+| What it answers | Capability id | Documented URL |
 | --- | --- | --- |
-| Parse a handle, Nigerian mobile, or public shop URL | Yes | |
-| Score `@trusted_shop` low, `@scam_shop` high, anything else medium, with 5–8 mock receipts | Yes | |
-| Sign an x402 payment against a local 402 and keep the settlement hash | Yes, unit test, no chain | |
-| Unpaid `POST /api/check` returns 402 offering cNGN (Permit2) and USD₮ | Yes, if the facilitator `/supported` endpoint answers | |
-| Live catalog check (`npm run verify-catalog`) | Yes, it is a free GET | |
-| Instagram, X, Reddit, browser, Cencori calls and real tx hashes | | Yes. `BUY_MODE=live` and USD₮ (or USDC/USA₮) on the agent wallet |
-| User payment settling to PayTo | | Yes. `PAYMENT_MODE=x402`, `X402_API_KEY`, and the user's cNGN or USD₮ |
-| ERC-8004 register | Dry-run prints the calldata | `--broadcast` spends gas, paid in USD₮ as the fee currency |
+| Account age, counts, bio | `monid.x.tikhub.api-v1-twitter-web-fetch-user-profile` | `POST /v1/social/x/tools/tikhub-api-v1-twitter-web-fetch-user-profile` |
+| About card | `monid.x.tikhub.api-v1-twitter-web-fetch-user-about` | `POST /v1/social/x/tools/tikhub-api-v1-twitter-web-fetch-user-about` |
+| Recent posts and repetition | `monid.x.tikhub.api-v1-twitter-web-fetch-user-post-tweet` | `POST /v1/social/x/tools/tikhub-api-v1-twitter-web-fetch-user-post-tweet` |
+| Replies | `monid.x.tikhub.api-v1-twitter-web-fetch-user-tweet-replies` | `POST /v1/social/x/tools/tikhub-api-v1-twitter-web-fetch-user-tweet-replies` |
+| A page of followers | `monid.x.tikhub.api-v1-twitter-web-fetch-user-followers` | `POST /v1/social/x/tools/tikhub-api-v1-twitter-web-fetch-user-followers` |
+| Posts saying scam, fraud, fake, didn't deliver, no refund | `x.posts.search` | `POST /v1/social/x/posts/search` |
 
-`@trusted_shop`, `@scam_shop`, and a phone ending in `0000` are demo fixtures in mock mode only. Live mode uses whatever the gateway returns.
+The catalog is the authority. If a row disappears or changes price, the check skips it or refuses it. A call priced above `MAX_BUY_ATOMIC_PER_CALL` (default `20000`, which is $0.02) is not signed.
 
-## Run
+The buyer fee defaults to **$0.08**, which covers those six calls with room for the facilitator fee. Change it with `CHECK_PRICE_USD`.
 
-Do this — see `.env.example`.
+The verdict is deliberately plain:
 
-```sh
+- **Safe** — the account has history, the complaint search was read and came back clean, and the follower and post samples are not screaming.
+- **Caution** — mixed signals, a single complaint, or a missing source. A missing complaint search can never be Safe.
+- **Risky** — several complaint posts, a days-old account plus a complaint, or several warning signs at once.
+
+It is a reading of public posts, not a promise the vendor will deliver.
+
+## Services used
+
+Paid, not operated by this project:
+
+- **buy gateway** — `https://gateway.usebuy.ai`. x402 v1 and v2, scheme `exact`, Celo mainnet `eip155:42220`. Gateway PayTo observed on 6 Nov 2026: `0x20faAca5F980E29639A0FCC6dcA6988E18ed333B`. The agent pays this address. Tokens offered on the 402: USDC, USDT (`Tether USD` / version `1`), USAT (`Tether America USD` / version `1`).
+- **Celo x402 facilitator** — `https://api.x402.celo.org` (`/verify`, `/settle`, `/supported`). Dashboard: `https://x402.celo.org`. Used when a buyer pays this app with a gasless signature. The agent does not need a facilitator key to pay buy. The key is only for settling the buyer's fee.
+
+Free, used as references:
+
+- **ERC-8004 Identity Registry** on Celo mainnet: `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`.
+- **Celo RPC** default `https://forno.celo.org`, only to read a buyer's transfer and to broadcast the registration transaction.
+
+## How the buyer pays
+
+Two rails, both on Celo mainnet (chain id `42220`):
+
+1. **x402, gasless.** USDT, USDC, or USAT. The wallet signs EIP-3009 `TransferWithAuthorization`. The facilitator submits it and pays the gas. The buyer needs no CELO. This is the path for wallets that implement `eth_signTypedData_v4`, and for any HTTP client.
+2. **Stablecoin transfer.** USDT or cUSD (USDm in MiniPay). MiniPay does not sign typed data, so the page sends a normal transfer and pays the network fee in that stablecoin (CIP-64 `feeCurrency`). The transfer calldata is tagged with an ERC-8021 suffix. The server accepts the hash only if the receipt contains an exact transfer of the check fee to `PAY_TO` on mainnet, and only once.
+
+**cUSD is not an x402 asset** on the hosted facilitator (checked against `https://x402.celo.org/skill.md` and `GET /supported` behavior documented there). cUSD works on the transfer rail only. Gasless signatures are USDT, USDC, or USAT.
+
+x402 settlements cannot carry an ERC-8021 suffix. For those transactions the identifier is the PayTo address `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`. Registration and MiniPay transfers carry the issued builder code `celo_aac08e9358f3`.
+
+## Proof of payment
+
+`/proof` lists every check. Each receipt has:
+
+- the verdict and the evidence links
+- the buyer's payment transaction, when one happened
+- the PayTo address
+- whether attribution was an ERC-8021 code or the PayTo address (x402)
+- each buy call: capability id, URL, transaction hash, and correlation id
+
+Practice-mode receipts are labeled and have no transaction hashes. Raw provider payloads are not stored.
+
+Celoscan links use `https://celoscan.io/tx/<hash>`.
+
+## Practice mode
+
+`DRY_RUN` defaults to `true`. The app boots with no keys and no funds.
+
+```bash
 npm install
-cp .env.example .env
 npm test
+npm run check:dry -- @riskyvendor
 npm run dev
 ```
 
-Open `http://localhost:8787`. The dev server rebuilds `public/pay.js` first. That file is the browser wallet client (viem and `@x402/fetch`).
+Open the printed local URL. Try `@safevendor`, `@cautionvendor`, and `@riskyvendor`. The verdicts use sample posts, and the receipt says so. The six real capability URLs are listed so you can see what a live check will buy.
 
-`npm run wallet` prints the agent address once `AGENT_PRIVATE_KEY` is set. `npm run typecheck` is `tsc --noEmit`.
+`npm test` does not spend funds. It includes a mock of the buy 402 where the real `@x402/fetch` client signs a USDT authorization for Celo mainnet and stops before a quote above the cap.
 
-## Fund
+## Go live
 
-Do this with about **$10–20 USD₮ on Celo mainnet**, sent to the address `npm run wallet` prints.
+Do these in order. Nothing below is done for you, because each step spends a real key or real stablecoins.
 
-One funded check spends about **$0.04** at the gateway if every call in a full handle-plus-link plan runs (profile $0.005, posts $0.007, comments $0.007, X $0.005, Reddit $0.005, browser $0.003606, Cencori $0.01). The caps are the 402 quotes from 2026-11-06 — see [docs/services.md](docs/services.md). A quote above the cap is skipped, not paid. $10 covers a couple of hundred checks at that price; $20 leaves room if a quote moves up and you raise the cap on purpose.
+1. **Fund the agent wallet and create a facilitator key.** The public agent wallet is `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`. It pays buy and receives the buyer's fee. The private key stays with you. It is not in this repo. Fund that address with USDT on Celo mainnet (or USDC / USAT if you set `BUY_TOKEN`). About **$0.05 per check** is the data cost at the prices above. Also keep a little USDT for the registration gas if you pay gas in USDT.
+   - A facilitator API key from <https://x402.celo.org> (connect a wallet, Create API key, sign). It looks like `x402_...`. New keys include a few free mainnet settlements, then the dashboard balance.
 
-The agent wallet must hold the token named by `BUY_TOKEN` (default USD₮). cNGN paid by users does not pay the gateway. Keep the USD₮ float even if every customer pays in cNGN.
+2. **PayTo is already that wallet.** `PAY_TO` in `wrangler.jsonc` and `.env.example` is `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`. Clearing it to the zero address turns live mode off.
 
-Gas for the identity registration is paid in USD₮ (`feeCurrency`). You do not need a separate CELO balance for that transaction. The one-time cNGN `approve(Permit2)` is signed by the user's wallet; MiniPay can pay that gas, a raw key cannot if it holds only cNGN and the wallet does not set a fee currency.
+3. **Put the secrets in `.dev.vars`** (see `.env.example`). For production:
 
-Set `BUY_MODE=live` only after the USD₮ arrives. Set `PAYMENT_MODE=x402` when you want users to pay. Create the seller key at [x402.celo.org](https://x402.celo.org) with the PayTo wallet and put it in `X402_API_KEY`. Settlement without the key fails at the facilitator. New keys include a small number of free mainnet settlements, then gas plus 0.3% from the dashboard balance.
+   ```bash
+   npx wrangler secret put AGENT_PRIVATE_KEY
+   npx wrangler secret put X402_API_KEY
+   ```
 
-Default user prices: **$0.08 USD₮** (`80000` atomic) or **120 cNGN** (`120000000` atomic). 120 cNGN is a fixed price, roughly $0.08 when the naira is near 1,500 per dollar. It is not a quote from Textile or anywhere else. Change `CHECK_PRICE_USDT` and `CHECK_PRICE_CNGN` if you want a different price. Both are 6-decimal atomic strings.
+   Set the public vars in `wrangler.jsonc` or the dashboard: `DRY_RUN` = `"false"`, `PAY_TO`, `BUY_TOKEN`, `CHECK_PRICE_USD`, `ATTRIBUTION_CODE`, `CELO_RPC_URL`, `PUBLIC_APP_URL`.
 
-## Identity
+4. **The attribution code is already the issued one:** `celo_aac08e9358f3`. Registration and MiniPay transfers append it as an ERC-8021 schema-0 suffix. x402 payments still cannot carry it. For those, report PayTo `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`.
 
-Do this — see `npm run register`.
+5. **Create the D1 database** and put its id in `wrangler.jsonc` (`database_id` is a local placeholder today):
 
-```sh
-npm run register                 # dry-run, no transaction
-npm run register -- --broadcast # Celo mainnet, from AGENT_PRIVATE_KEY
+   ```bash
+   npx wrangler d1 create pay-small-check
+   npm run db:migrate
+   ```
+
+6. **Deploy.**
+
+   ```bash
+   npx wrangler deploy
+   ```
+
+   The Worker needs the Standard usage model (`limits.cpu_ms` is set). A check holds the request open while buy settles each call. Budget roughly 10 seconds per paid call.
+
+7. **Register the ERC-8004 identity** (one command, spends gas, does not run until you drop `--dry-run`):
+
+   ```bash
+   AGENT_PRIVATE_KEY=0x... \
+   AGENT_URI=https://<your-worker>/agent.json \
+   CELO_RPC_URL=https://forno.celo.org \
+   npm run register:8004
+   ```
+
+   Preview without broadcasting:
+
+   ```bash
+   npm run register:8004 -- --dry-run
+   ```
+
+   The script calls `register(agentURI)` on `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`, with the `celo_aac08e9358f3` suffix on the calldata, and pays gas in USDT unless `GAS_FEE_CURRENCY=celo`. Copy the printed `agentId` into `AGENT_ID` and redeploy so `/agent.json` includes `registrations`. The registration file already lists the agent wallet and the attribution code.
+
+8. **Confirm a real check.** From a wallet that is not the agent wallet, open the site, pay, and open `/proof`. You should see your payment hash and six buy hashes. The agent address in `/api/config` (`agentPayer`) is the wallet that paid buy.
+
+9. **Submit the hackathon entry** with this repo, the ERC-8004 id, PayTo `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`, attribution code `celo_aac08e9358f3`, and a link to `/proof`.
+
+`DRY_RUN=false` with a missing key returns 503 and does not invent a verdict.
+
+## Calling the API
+
+Practice:
+
+```bash
+curl -s -X POST http://127.0.0.1:8787/api/checks \
+  -H 'content-type: application/json' \
+  -d '{"handle":"@safevendor"}'
 ```
 
-The script calls `register(agentURI)` on `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`. The URI is a `data:` JSON document so you do not need a deployed site first. Set `AGENT_ENDPOINT` to the public origin before you broadcast if you want that URL inside the document. The receipt's `Registered` event is the agent id. The script prints `https://8004scan.io/agents/celo/<agentId>` and the Celoscan link.
+Live, unpaid (returns 402 and a `PAYMENT-REQUIRED` header):
 
-The calldata includes the ERC-8021 suffix from `@celo/attribution-tags`. The default code is `codeFromRepo("ahmardchain/pay-small-check")`, which today is `celo_2dc9d9f7fa5b`. If Loops issued you a different code, set `ATTRIBUTION_CODE` before the first broadcast. A tag cannot be added later.
-
-x402 settlements are submitted by the facilitator. Attribution tags are not applied to those transactions. The hackathon counts Build with buy by the PayTo address and the paid calls from the agent wallet. Put the PayTo address in the submission.
-
-## Payment proof for the form
-
-Do a live check (`BUY_MODE=live`). The JSON `receipts` array has one object per gateway call: capability, catalog id, token, atomic amount, and `txHash`. Open `https://celoscan.io/tx/<txHash>`. Those hashes are the proof that this wallet paid services it does not run.
-
-The user's payment is a different transaction. The browser client reads the `PAYMENT-RESPONSE` header and shows that hash too. Mock receipts have `outcome: "mock"` and `txHash: null`. Do not submit those as payment proof.
-
-`npm run verify-catalog` is the free check that the ten routes still match. It does not spend.
-
-## Deploy
-
-Do this — see `wrangler.jsonc`. Workers plus static assets. API requests hit the Worker; the page is an asset.
-
-```sh
-npx wrangler secret put AGENT_PRIVATE_KEY
-npx wrangler secret put X402_API_KEY
+```bash
+curl -i -X POST https://<your-worker>/api/checks \
+  -H 'content-type: application/json' -H 'accept: application/json' \
+  -d '{"handle":"somevendor"}'
 ```
 
-For a funded deployment, set `BUY_MODE` to `live` and `PAYMENT_MODE` to `x402` in `wrangler.jsonc`, set `PAY_TO` and `AGENT_ENDPOINT`, run `npm run cf-typegen`, then `npx wrangler deploy`.
+Retry with `PAYMENT-SIGNATURE`, the base64 x402 v2 payload from `@x402/fetch`. A MiniPay-style transfer retries with `{"handle":"somevendor","paymentTx":"0x…","token":"USDT"}` or `"token":"cUSD"`.
 
-The checked-in vars are the mock demo, so a deploy with no edits does not spend. A full live check is several sequential gateway calls and can take a minute. The Node server (`npm start`) is the path to use if a Worker request hits the platform duration limit. CPU is mostly waiting on fetch; `limits.cpu_ms` is 30000.
+Useful routes:
 
-## Limits
+| Route | Purpose |
+| --- | --- |
+| `GET /` | The check |
+| `GET /proof` | Public receipts |
+| `GET /api/config` | Price, PayTo, agent payer, tokens, capability list |
+| `GET /api/receipts` and `GET /api/receipts/:id` | Receipt JSON |
+| `POST /api/checks` | Run a check |
+| `GET /agent.json` | ERC-8004 registration file |
+| `GET /whatsapp/` | Coming soon. Nothing is uploaded. |
 
-- Public data only. No WhatsApp content, no private accounts, no promise the vendor will deliver.
-- The model can raise the score. It cannot lower a high heuristic, and a sentence that looks like an instruction is dropped.
-- A paid call is never retried. A timeout after the payment header is sent is recorded as ambiguous.
-- Cencori is listed as closed beta. If it fails after settlement, the score stays on the other calls and the receipt is kept.
-- Instagram comments run only when a post shortcode is in the posts payload. Reddit comments run only when a `t3_` id is in the search payload, and only on the phone/link path.
-- Shop links must be public `http(s)`. Local and private hosts are rejected before any payment.
-- This build's caps and URLs are the 2026-11-06 quotes. See [docs/services.md](docs/services.md). If the catalog moves a route, the live path skips it instead of calling an unverified URL.
-- No ERC-8004 identity has been minted from this repository yet. That takes the broadcast step above.
+## Project layout
+
+- `src/app.ts` — HTTP API
+- `src/check.ts` — catalog, then the six paid calls
+- `src/lib/buy.ts` — `@x402/fetch` buyer, mainnet token only, per-call cap
+- `src/lib/analyze.ts` — the verdict
+- `src/x402-seller.ts` — buyer fee, facilitator `https://api.x402.celo.org`
+- `scripts/register-8004.ts` — ERC-8004 registration
+- `public/` — mobile-first pages, including the MiniPay transfer flow
+
+## Development
+
+```bash
+npm install
+npm test
+npm run typecheck
+npm run dev
+npm run dry-run          # wrangler deploy --dry-run, no upload
+```
+
+Node 20 or newer. The Worker compatibility date is 2026-11-06, with `nodejs_compat`.
+
+## What is intentionally not built
+
+- No WhatsApp or Instagram data provider. The WhatsApp page does not submit.
+- No testnet payments. The hackathon is mainnet. A non-42220 RPC is rejected when a transfer is checked.
+- No automatic retry of a buy call after a timeout or `settle_uncertain`. The receipt keeps the error and stops the queue.
+- The paid response shapes from TikHub and the search route vary. The reader walks the JSON for profiles and posts. A payload it does not recognize is a gap, and a gap in the complaint search cannot be a Safe verdict. If buy changes a required body field, that call returns `invalid_request`, is recorded, and is not paid.
+
+## TODO
+
+- Confirm a live paid response once the agent wallet is funded, and tighten the normalizer if TikHub wraps posts in a shape the walker misses. The walker is tested against the nested `legacy` / `core.user_results` shape those endpoints use.
+- After registration, set `AGENT_ID` so the registration file and the on-chain id match.

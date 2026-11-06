@@ -1,113 +1,116 @@
+import { getAddress, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { resolveAttributionCode } from "./attribution.js";
+import { attributionSuffix } from "./lib/attribution.js";
+import { atomicString, usdToAtomic } from "./lib/money.js";
+import { AGENT_WALLET, ATTRIBUTION_CODE } from "./lib/project.js";
+import {
+  isAddress,
+  parseTokenSymbol,
+  TOKENS,
+  X402_TOKENS,
+  type TokenInfo,
+} from "./lib/tokens.js";
 
-export const CELO_CHAIN_ID = 42220;
-export const CELO_RPC_DEFAULT = "https://forno.celo.org";
-export const FACILITATOR_URL = "https://api.x402.celo.org";
-export const BUY_GATEWAY = "https://gateway.usebuy.ai";
+export interface AppBindings {
+  DB?: D1Database;
+  DRY_RUN?: string;
+  AGENT_PRIVATE_KEY?: string;
+  X402_API_KEY?: string;
+  PAY_TO?: string;
+  CELO_RPC_URL?: string;
+  BUY_GATEWAY_CATALOG?: string;
+  X402_FACILITATOR_URL?: string;
+  CHECK_PRICE_USD?: string;
+  BUY_TOKEN?: string;
+  MAX_BUY_ATOMIC_PER_CALL?: string;
+  ATTRIBUTION_CODE?: string;
+  PUBLIC_APP_URL?: string;
+  AGENT_ID?: string;
+  GITHUB_REPO?: string;
+}
 
-/** Celo mainnet USD₮ (EIP-3009). Confirmed on GET https://api.x402.celo.org/supported on 2026-11-06. */
-export const USDT = {
-  symbol: "USDT",
-  asset: "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
-  decimals: 6,
-  name: "Tether USD",
-  version: "1",
-} as const;
-
-/**
- * Celo mainnet cNGN (Permit2, 6 decimals). Confirmed on the same facilitator
- * response. cNGN has no EIP-2612 permit, so the first payer approves Permit2.
- */
-export const CNGN = {
-  symbol: "cNGN",
-  asset: "0xF6829D7393dAe24509eb1E52eE8e572e2E271a4f",
-  decimals: 6,
-  name: "cNGN",
-  version: "1",
-  permit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
-} as const;
-
-/** $0.08. A full check spends about $0.04 at the gateway; see docs/services.md. */
-export const DEFAULT_PRICE_USDT = "80000";
-/** 120 cNGN. Fixed hackathon price, roughly $0.08 near 1,500 NGN per dollar. Not a live FX quote. */
-export const DEFAULT_PRICE_CNGN = "120000000";
-
-export type BuyToken = "USDC" | "USDT" | "USAT";
-
-export type Settings = {
-  buyMode: "mock" | "live";
-  paymentMode: "open" | "x402";
-  agentPrivateKey?: `0x${string}`;
-  payTo?: `0x${string}`;
-  x402ApiKey?: string;
-  attributionCode: string;
-  buyToken: BuyToken;
-  priceUsdt: string;
-  priceCngn: string;
+export interface Settings {
+  dryRun: boolean;
+  payTo: Address | null;
+  agentPrivateKey: Hex | null;
+  agentAddress: Address | null;
+  x402ApiKey: string | null;
   rpcUrl: string;
-  agentEndpoint: string;
-  port: number;
-};
+  catalogUrl: string;
+  facilitatorUrl: string;
+  priceUsd: string;
+  buyToken: TokenInfo;
+  maxAtomicPerCall: bigint;
+  attributionCode: string;
+  attributionSuffix: Hex;
+  publicAppUrl: string;
+  agentId: string;
+  githubRepo: string;
+  x402Prices: { token: TokenInfo; amount: string }[];
+  transferPrices: { token: TokenInfo; amount: string }[];
+}
 
-export function settingsFromEnv(env: Record<string, string | undefined>): Settings {
-  const agentPrivateKey = parseKey(env.AGENT_PRIVATE_KEY ?? env.BUY_PRIVATE_KEY);
-  const derived = agentPrivateKey ? privateKeyToAccount(agentPrivateKey).address : undefined;
-  const payTo = parseAddress(env.PAY_TO) ?? derived;
-  const buyMode = env.BUY_MODE === "live" ? "live" : "mock";
-  const paymentMode = env.PAYMENT_MODE === "x402" ? "x402" : "open";
-  const buyToken = parseBuyToken(env.BUY_TOKEN);
+export function readSettings(env: AppBindings, requestUrl?: string): Settings {
+  const dryRun = (env.DRY_RUN ?? "true").toLowerCase() !== "false";
+  const priceUsd = env.CHECK_PRICE_USD?.trim() || "0.08";
+  usdToAtomic(priceUsd, 6);
+  const buyToken = parseTokenSymbol(env.BUY_TOKEN, "USDT");
+  const code = (env.ATTRIBUTION_CODE?.trim() || ATTRIBUTION_CODE).toLowerCase();
+  const suffix = attributionSuffix(code);
+  const origin = (env.PUBLIC_APP_URL?.trim() || originOf(requestUrl) || "").replace(/\/$/, "");
+  const agentPrivateKey = normalizeKey(env.AGENT_PRIVATE_KEY);
   return {
-    buyMode,
-    paymentMode,
+    dryRun,
+    payTo: resolvePayTo(env.PAY_TO),
     agentPrivateKey,
-    payTo,
-    x402ApiKey: blankToUndefined(env.X402_API_KEY),
-    attributionCode: resolveAttributionCode(env.ATTRIBUTION_CODE),
+    agentAddress: agentPrivateKey ? privateKeyToAccount(agentPrivateKey).address : null,
+    x402ApiKey: env.X402_API_KEY?.trim() || null,
+    rpcUrl: env.CELO_RPC_URL?.trim() || "https://forno.celo.org",
+    catalogUrl: env.BUY_GATEWAY_CATALOG?.trim() || "https://gateway.usebuy.ai/v1/catalog",
+    facilitatorUrl: env.X402_FACILITATOR_URL?.trim() || "https://api.x402.celo.org",
+    priceUsd,
     buyToken,
-    priceUsdt: digits(env.CHECK_PRICE_USDT, DEFAULT_PRICE_USDT),
-    priceCngn: digits(env.CHECK_PRICE_CNGN, DEFAULT_PRICE_CNGN),
-    rpcUrl: blankToUndefined(env.CELO_RPC_URL) ?? CELO_RPC_DEFAULT,
-    agentEndpoint: (blankToUndefined(env.AGENT_ENDPOINT) ?? "").replace(/\/$/, ""),
-    port: Number(env.PORT ?? 8787) || 8787,
+    maxAtomicPerCall: BigInt(env.MAX_BUY_ATOMIC_PER_CALL?.trim() || "20000"),
+    attributionCode: code,
+    attributionSuffix: suffix,
+    publicAppUrl: origin,
+    agentId: env.AGENT_ID?.trim() || "",
+    githubRepo: env.GITHUB_REPO?.trim() || "ahmardchain/pay-small-check",
+    x402Prices: X402_TOKENS.map((token) => ({ token, amount: atomicString(priceUsd, token.decimals) })),
+    transferPrices: [TOKENS.USDT, TOKENS.cUSD].map((token) => ({
+      token,
+      amount: atomicString(priceUsd, token.decimals),
+    })),
   };
 }
 
-function blankToUndefined(value: string | undefined): string | undefined {
-  const trimmed = value?.trim();
-  return trimmed ? trimmed : undefined;
-}
-
-function digits(value: string | undefined, fallback: string): string {
-  const trimmed = value?.trim();
-  if (!trimmed) return fallback;
-  if (!/^\d+$/.test(trimmed) || trimmed === "0") {
-    throw new Error("Check prices must be positive integer atomic amounts");
+function originOf(requestUrl?: string): string {
+  if (!requestUrl) return "";
+  try {
+    return new URL(requestUrl).origin;
+  } catch {
+    return "";
   }
-  return trimmed;
 }
 
-function parseBuyToken(value: string | undefined): BuyToken {
-  const token = (value?.trim() || "USDT").toUpperCase();
-  if (token === "USDC" || token === "USDT" || token === "USAT") return token;
-  throw new Error("BUY_TOKEN must be USDC, USDT, or USAT");
+function resolvePayTo(value: string | undefined): Address | null {
+  if (value === undefined || value.trim() === "") return AGENT_WALLET;
+  return isAddress(value) ? getAddress(value) : null;
 }
 
-export function parseKey(value: string | undefined): `0x${string}` | undefined {
-  const trimmed = blankToUndefined(value);
-  if (!trimmed) return undefined;
-  const hex = trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`;
-  if (!/^0x[0-9a-fA-F]{64}$/.test(hex)) {
+function normalizeKey(value: string | undefined): Hex | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  const withPrefix = trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`;
+  if (!/^0x[0-9a-fA-F]{64}$/.test(withPrefix)) {
     throw new Error("AGENT_PRIVATE_KEY must be a 32-byte hex private key");
   }
-  return hex as `0x${string}`;
+  return withPrefix as Hex;
 }
 
-export function parseAddress(value: string | undefined): `0x${string}` | undefined {
-  const trimmed = blankToUndefined(value);
-  if (!trimmed) return undefined;
-  if (!/^0x[0-9a-fA-F]{40}$/.test(trimmed)) {
-    throw new Error("PAY_TO must be an 0x address");
-  }
-  return trimmed as `0x${string}`;
+export function liveBlockers(settings: Settings): string[] {
+  const missing: string[] = [];
+  if (!settings.payTo) missing.push("PAY_TO");
+  if (!settings.agentPrivateKey) missing.push("AGENT_PRIVATE_KEY");
+  return missing;
 }

@@ -1,39 +1,38 @@
 {
   "name": "pay-small-check",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "description": "Check an X vendor before you pay them. The agent buys real X data through buy on Celo and returns a Safe, Caution, or Risky verdict.",
   "type": "module",
-  "engines": {
-    "node": ">=22"
-  },
   "scripts": {
-    "dev": "npm run build:web && tsx --env-file-if-exists=.env src/server.ts",
-    "start": "npm run build:web && tsx --env-file-if-exists=.env src/server.ts",
-    "test": "tsx --test test/**/*.test.ts",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "dry-run": "wrangler deploy --dry-run",
+    "types": "wrangler types",
     "typecheck": "tsc --noEmit",
-    "wallet": "tsx --env-file-if-exists=.env scripts/wallet.ts",
-    "register": "tsx --env-file-if-exists=.env scripts/register-8004.ts",
-    "verify-catalog": "tsx scripts/verify-catalog.ts",
-    "build:web": "esbuild src/browser/pay.ts --bundle --format=esm --outfile=public/pay.js --platform=browser",
-    "cf-typegen": "wrangler types"
+    "test": "tsx --test test/**/*.test.ts",
+    "register:8004": "tsx scripts/register-8004.ts",
+    "check:dry": "tsx scripts/dry-run-check.ts",
+    "db:migrate:local": "wrangler d1 migrations apply pay-small-check --local",
+    "db:migrate": "wrangler d1 migrations apply pay-small-check --remote"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "@celo/attribution-tags": "^0.5.0",
-    "@celo/buy-core": "^0.8.5",
-    "@hono/node-server": "^2.1.6",
     "@x402/core": "^2.30.0",
     "@x402/evm": "^2.30.0",
-    "@x402/extensions": "^2.30.0",
     "@x402/fetch": "^2.30.0",
     "@x402/hono": "^2.30.0",
-    "hono": "^4.13.7",
-    "viem": "^2.38.6"
+    "hono": "^4.13.16",
+    "viem": "^2.38.0"
   },
   "devDependencies": {
-    "@types/node": "^22.19.1",
-    "esbuild": "^0.25.12",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3",
+    "@cloudflare/workers-types": "^5.20261104.1",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
     "wrangler": "^4.45.0"
   }
 }
