@@ -30,10 +30,18 @@ export interface ReceiptStore {
   get(id: string): Promise<StoredReceipt | null>;
   list(limit: number): Promise<StoredReceipt[]>;
   hasPaymentTx(txHash: string): Promise<boolean>;
+  /**
+   * Reserve a payment before any paid buy call runs. Returns false when the
+   * payment is already reserved, so concurrent replays cannot each spend.
+   */
+  claimPayment(key: string): Promise<boolean>;
+  /** Give a reservation back when the check charged nothing, so the buyer can retry. */
+  releasePayment(key: string): Promise<void>;
 }
 
 export function memoryStore(): ReceiptStore {
   const rows = new Map<string, StoredReceipt>();
+  const claims = new Set<string>();
   return {
     async put(receipt) {
       if (receipt.paymentTx) {
@@ -56,13 +64,22 @@ export function memoryStore(): ReceiptStore {
       const needle = txHash.toLowerCase();
       return [...rows.values()].some((row) => row.paymentTx?.toLowerCase() === needle);
     },
+    async claimPayment(key) {
+      const needle = key.toLowerCase();
+      if (claims.has(needle)) return false;
+      claims.add(needle);
+      return true;
+    },
+    async releasePayment(key) {
+      claims.delete(key.toLowerCase());
+    },
   };
 }
 
 interface D1Like {
   prepare(query: string): {
     bind(...values: unknown[]): {
-      run(): Promise<unknown>;
+      run(): Promise<{ meta?: { changes?: number } } | unknown>;
       first<T>(): Promise<T | null>;
       all<T>(): Promise<{ results: T[] }>;
     };
@@ -100,6 +117,17 @@ export function d1Store(db: D1Like): ReceiptStore {
         .bind(txHash.toLowerCase())
         .first<{ id: string }>();
       return Boolean(row);
+    },
+    async claimPayment(key) {
+      // The primary key makes this atomic: only one concurrent request inserts.
+      const result = (await db
+        .prepare(`INSERT OR IGNORE INTO payment_claims (key, created_at) VALUES (?, ?)`)
+        .bind(key.toLowerCase(), new Date().toISOString())
+        .run()) as { meta?: { changes?: number } };
+      return (result?.meta?.changes ?? 0) === 1;
+    },
+    async releasePayment(key) {
+      await db.prepare(`DELETE FROM payment_claims WHERE key = ?`).bind(key.toLowerCase()).run();
     },
   };
 }

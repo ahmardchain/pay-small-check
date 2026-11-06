@@ -11,10 +11,14 @@ import { TOKENS, type TokenSymbol } from "./lib/tokens.js";
 import { liveBlockers, readSettings, type AppBindings, type Settings } from "./settings.js";
 import { requestAdapter, sellerFor, settlementTx, unpaidBody } from "./x402-seller.js";
 
+type Seller = Pick<Awaited<ReturnType<typeof sellerFor>>, "processHTTPRequest" | "processSettlement">;
+
 export interface AppOptions {
   store?: ReceiptStore;
   fetchImpl?: typeof fetch;
   reader?: ChainReader;
+  /** Test hook. Production builds the seller from settings. */
+  seller?: Seller;
 }
 
 const CORS: Record<string, string> = {
@@ -221,8 +225,15 @@ async function transferCheck(
       token,
       amount: BigInt(price.amount),
     });
+    // Reserve the hash before any paid buy call. Parallel replays of the same
+    // transaction lose here instead of each spending on six data calls.
+    const key = `transfer:${proof.txHash}`;
+    if (!(await store.claimPayment(key))) {
+      return c.json({ error: "payment_used", message: "That payment was already used for a check." }, 409);
+    }
     const live = await runLiveCheck(settings, handle, options.fetchImpl);
     if (!live.charge || !live.analysis) {
+      await store.releasePayment(key);
       return c.json(
         {
           error: "check_failed",
@@ -249,6 +260,7 @@ async function transferCheck(
     });
     return c.json(publicReceipt(receipt));
   } catch (error) {
+    // An error after the claim keeps it: a buy call may already have paid.
     if (error instanceof PaymentError) return c.json({ error: "payment_rejected", message: error.message }, 402);
     const message = error instanceof Error ? error.message : "Could not read the payment.";
     return c.json({ error: "payment_unreadable", message }, 502);
@@ -273,9 +285,9 @@ async function x402Check(
     );
   }
   const store = storeFor(c.env, options.store);
-  let seller;
+  let seller: Seller;
   try {
-    seller = await sellerFor(settings);
+    seller = options.seller ?? (await sellerFor(settings));
   } catch (error) {
     return c.json(
       {
@@ -302,8 +314,18 @@ async function x402Check(
     return c.json(unpaidBody(settings), 402);
   }
 
+  // Verification alone does not consume the authorization nonce, so parallel
+  // requests with one signature would all pass. Reserve it before buying.
+  const claimKey = x402ClaimKey(result.paymentPayload, c.req.raw);
+  if (!(await store.claimPayment(claimKey))) {
+    return c.json({ error: "payment_used", message: "That payment authorization is already being used for a check." }, 409);
+  }
+
   const live = await runLiveCheck(settings, handle, options.fetchImpl);
   if (!live.charge || !live.analysis) {
+    // Nothing was charged and the authorization was not settled, so the same
+    // signature may be retried.
+    await store.releasePayment(claimKey);
     return c.json(
       {
         error: "check_failed",
@@ -361,6 +383,20 @@ async function x402Check(
   for (const [key, value] of Object.entries(CORS)) headers.set(key, value);
   headers.set("Cache-Control", "private, no-store");
   return new Response(JSON.stringify(publicReceipt(draft)), { status: 200, headers });
+}
+
+/**
+ * A stable key for one x402 authorization: the payer and its EIP-3009 nonce.
+ * Falls back to a hash of the raw header for payload shapes without a nonce.
+ */
+export function x402ClaimKey(paymentPayload: unknown, request: Request): string {
+  const inner = (paymentPayload as { payload?: { authorization?: { from?: unknown; nonce?: unknown } } } | null)?.payload;
+  const auth = inner?.authorization;
+  if (auth && typeof auth.from === "string" && typeof auth.nonce === "string") {
+    return `x402:${auth.from}:${auth.nonce}`.toLowerCase();
+  }
+  const raw = request.headers.get("payment-signature") ?? request.headers.get("x-payment") ?? "";
+  return `x402-raw:${raw}`;
 }
 
 function symbolForAsset(asset: string): string | null {
