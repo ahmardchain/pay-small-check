@@ -2,9 +2,9 @@
 
 <img src="docs/logo.svg" alt="Pay Small Check" width="560" />
 
-### Check the vendor on X before you send the money.
+### Check the vendor on X or Instagram before you send the money.
 
-A buyer pastes an X handle and pays **$0.08** on Celo. The agent spends it on six paid reads from [buy](https://usebuy.ai) and returns **Safe**, **Caution**, or **Risky**, with the posts the verdict came from.
+A buyer pastes an X or Instagram handle and pays **$0.08** on Celo. The agent spends it on paid reads from [buy](https://usebuy.ai) and returns **Safe**, **Caution**, or **Risky**, with the posts the verdict came from. Facebook is listed as coming soon and is not a check.
 
 [![Live app](https://img.shields.io/badge/Live_app-open-0c6b4f?style=for-the-badge)](https://pay-small-check.ahmardchain.workers.dev)
 [![Proof](https://img.shields.io/badge/Proof-receipts-1c1612?style=for-the-badge)](https://pay-small-check.ahmardchain.workers.dev/proof/)
@@ -41,7 +41,7 @@ Built for [**Agents on Open Rails**](https://www.loops.house/agents-on-open-rail
 No wallet and no spend. Checked against the live deployment on 6 Nov 2026.
 
 1. Open the app: https://pay-small-check.ahmardchain.workers.dev
-2. Open the public config: https://pay-small-check.ahmardchain.workers.dev/api/config. `dryRun` is `false`, `priceUsd` is `"0.08"`, `payTo` and `agentPayer` are `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`, `agentId` is `"10045"`, and six calls are listed.
+2. Open the public config: https://pay-small-check.ahmardchain.workers.dev/api/config. `dryRun` is `false`, `priceUsd` is `"0.08"`, `payTo` and `agentPayer` are `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`, `agentId` is `"10045"`, `calls` lists the six X reads, and `instagramCalls` lists the Instagram reads. `facebook.status` is `"coming_soon"`.
 3. Open the registration file: https://pay-small-check.ahmardchain.workers.dev/agent.json. Agent id **10045**, wallet `eip155:42220:0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08`, code `celo_aac08e9358f3`.
 4. Open the registration transaction: https://celoscan.io/tx/0x56926cb9a3faba200070350065c04ba7ec0ae2378670428b6df95ea2a940f9c6. Status success, `register` on the Identity Registry, ERC-721 token id **10045** minted to the agent wallet. The input data ends with the attribution tag: the hex of `celo_aac08e9358f3`, then length `11`, schema `00`, then the `8021` marker repeated.
 
@@ -62,16 +62,16 @@ No wallet and no spend. Checked against the live deployment on 6 Nov 2026.
 
 The [Global State of Scams 2025](https://gasa.org/knowledge-base/blog/global-scams-on-the-rise-over-half-of-adults-worldwide-report-scam-encounters) report by the Global Anti-Scam Alliance and Feedzai surveyed 46,000 adults in 42 markets. 57% met a scam in the past year and 23% lost money, roughly [$442 billion in total](https://www.feedzai.com/blog/gasa-global-state-of-scams-report/). Shopping and purchase scams were the most common kind: 54% of victims were hit by one.
 
-Paying a vendor from X is usually a scroll and a hope. The complaints ("scam", "didn't deliver", "fake") sit in replies and mentions, and a new account with a bought following looks the same as a shop that has delivered for years.
+Paying a vendor from X or Instagram is usually a scroll and a hope. The complaints ("scam", "didn't deliver", "fake") sit in replies and mentions, and a new account with a bought following looks the same as a shop that has delivered for years.
 
 1. **The check is manual.** Account age, follower quality, repeated posts, and complaint language are not on the first screen.
-2. **The data is not ours.** Profile, posts, replies, followers, and search are bought per call from the buy gateway. This app holds no X API key.
+2. **The data is not ours.** Profile, posts, replies, followers, and search are bought per call from the buy gateway. This app holds no X or Instagram API key.
 3. **The result has to be checkable.** A verdict is useless if nobody can open the payment behind it. Every paid check is stored on `/proof`.
 
 Pay Small Check does that reading for eight cents, before the money moves.
 
 - ✅ Safe, Caution, or Risky, with the reason and the post behind every signal
-- ✅ Six real paid reads per check, each its own x402 payment on Celo
+- ✅ Paid reads per check, each its own x402 payment on Celo: six on X, five on Instagram plus comments when a post shortcode is present
 - ✅ Pays from MiniPay (stablecoin transfer, fee in the same coin) or any wallet that signs typed data (gasless x402)
 - ✅ A public receipt for every check, with the buyer's payment and every buy transaction
 - ✅ One payment buys exactly one check, even under parallel replays
@@ -79,10 +79,10 @@ Pay Small Check does that reading for eight cents, before the money moves.
 ## Demo flow (90 seconds)
 
 1. Open https://pay-small-check.ahmardchain.workers.dev on a phone or a narrow window.
-2. Paste an X handle. The field accepts `@name` or `name`.
+2. Choose X or Instagram. Facebook is in the list and disabled. Paste a handle. The field accepts `@name` or `name`. Instagram also accepts a dot, as in `@shop.name`.
 3. Choose USDT or cUSD. The fee shown is $0.08.
 4. Pay. In MiniPay that is a stablecoin transfer and the network fee comes out of the same coin. In a wallet that can sign typed data, USDT can be a gasless x402 signature. cUSD is always a transfer.
-5. Wait. The agent buys six X reads from buy, then the page stamps **Safe**, **Caution**, or **Risky**, with the reasons and links.
+5. Wait. The agent buys the X or Instagram reads from buy, then the page stamps **Safe**, **Caution**, or **Risky**, with the reasons and links.
 6. Open **Open the public receipt**. That is `/proof/?id=…`. The same row is on https://pay-small-check.ahmardchain.workers.dev/proof/.
 
 The video storyboard is in [DEMO-SCRIPT.md](DEMO-SCRIPT.md).
@@ -119,7 +119,22 @@ The video storyboard is in [DEMO-SCRIPT.md](DEMO-SCRIPT.md).
 | 5 | A page of followers | `monid.x.tikhub.api-v1-twitter-web-fetch-user-followers` | [`POST /v1/social/x/tools/tikhub-api-v1-twitter-web-fetch-user-followers`](https://gateway.usebuy.ai/v1/social/x/tools/tikhub-api-v1-twitter-web-fetch-user-followers) |
 | 6 | Posts saying scam, fraud, fake, didn't deliver, no refund | `x.posts.search` | [`POST /v1/social/x/posts/search`](https://gateway.usebuy.ai/v1/social/x/posts/search) |
 
-Prices are the catalog quotes read on 6 Nov 2026, about **$0.005** each in USDC, USDT, or USAT. The live catalog at `GET https://gateway.usebuy.ai/v1/catalog` is re-read per check and is the authority at request time.
+Prices are the catalog quotes read on 6 Nov 2026, **$0.005** each in USDC, USDT, or USAT. Six calls are **$0.030**. The live catalog at `GET https://gateway.usebuy.ai/v1/catalog` is re-read per check and is the authority at request time.
+
+### 🔎 Instagram reads on the same fee
+
+`channel: "instagram"` uses the same $0.08 buyer fee, the same x402 or transfer payment, and the same receipt and replay rules. Quotes below are from the live catalog on 6 Nov 2026.
+
+| # | What it is for | Capability | Quote | Endpoint |
+|---|---|---|---|---|
+| 1 | Public profile | `instagram.profile` | $0.005 | [`POST /v1/social/instagram/profile`](https://gateway.usebuy.ai/v1/social/instagram/profile) |
+| 2 | Account details by username | `monid.instagram.tikhub.api-v1-instagram-v1-fetch-user-info-by-username` | $0.005 | [`POST …/tikhub-api-v1-instagram-v1-fetch-user-info-by-username`](https://gateway.usebuy.ai/v1/social/instagram/tools/tikhub-api-v1-instagram-v1-fetch-user-info-by-username) |
+| 3 | Recent posts | `monid.instagram.tikhub.api-v1-instagram-v2-fetch-user-posts` | $0.007 | [`POST …/tikhub-api-v1-instagram-v2-fetch-user-posts`](https://gateway.usebuy.ai/v1/social/instagram/tools/tikhub-api-v1-instagram-v2-fetch-user-posts) |
+| 4 | A page of followers | `monid.instagram.tikhub.api-v1-instagram-v2-fetch-user-followers` | $0.007 | [`POST …/tikhub-api-v1-instagram-v2-fetch-user-followers`](https://gateway.usebuy.ai/v1/social/instagram/tools/tikhub-api-v1-instagram-v2-fetch-user-followers) |
+| 5 | Search for the username next to "scam" | `monid.instagram.tikhub.api-v1-instagram-v2-general-search` | $0.007 | [`POST …/tikhub-api-v1-instagram-v2-general-search`](https://gateway.usebuy.ai/v1/social/instagram/tools/tikhub-api-v1-instagram-v2-general-search) |
+| 6 | Comments on one post, only when the posts payload contains a shortcode | `monid.instagram.tikhub.api-v1-instagram-v2-fetch-post-comments` | $0.007 | [`POST …/tikhub-api-v1-instagram-v2-fetch-post-comments`](https://gateway.usebuy.ai/v1/social/instagram/tools/tikhub-api-v1-instagram-v2-fetch-post-comments) |
+
+The five calls that always run quote to **$0.031**. With comments, the check quotes to **$0.038**. Both are under the $0.08 fee. Each quote is also under the $0.02 per-call cap. A missing or unreadable complaint search still cannot come back Safe. Instagram username reads often omit the join date, and an unknown account age is a warning.
 
 ### 🧾 A verdict you can argue with
 
@@ -150,8 +165,8 @@ MiniPay does not sign the x402 typed-data payload, so the page sends a normal tr
 
 | Piece | What happens | When | Code |
 |---|---|---|---|
-| buy catalog | `GET /v1/catalog` resolves the six capabilities, URLs, and quotes | Every check (cached 10 min) | [`src/lib/catalog.ts`](src/lib/catalog.ts), [`src/lib/capabilities.ts`](src/lib/capabilities.ts) |
-| buy paid calls | `@x402/fetch` pays each call from the agent wallet; gateway PayTo `0x20faAca5F980E29639A0FCC6dcA6988E18ed333B` | Six times per check | [`src/lib/buy.ts`](src/lib/buy.ts), [`src/check.ts`](src/check.ts) |
+| buy catalog | `GET /v1/catalog` resolves the X or Instagram capabilities, URLs, and quotes | Every check (cached 10 min) | [`src/lib/catalog.ts`](src/lib/catalog.ts), [`src/lib/capabilities.ts`](src/lib/capabilities.ts) |
+| buy paid calls | `@x402/fetch` pays each call from the agent wallet; gateway PayTo `0x20faAca5F980E29639A0FCC6dcA6988E18ed333B` | Once per planned read | [`src/lib/buy.ts`](src/lib/buy.ts), [`src/check.ts`](src/check.ts) |
 | Celo x402 facilitator | Verifies and settles the buyer's gasless authorization | Once per x402 check | [`src/x402-seller.ts`](src/x402-seller.ts) |
 | Celo RPC | Reads a transfer's receipt and `Transfer` log to confirm the exact fee reached PayTo | Once per transfer check | [`src/lib/payments.ts`](src/lib/payments.ts) |
 | ERC-8004 | Agent 10045 registered from the agent wallet | Once, already mined | [`scripts/register-8004.ts`](scripts/register-8004.ts), [`src/agent-card.ts`](src/agent-card.ts) |
@@ -175,7 +190,7 @@ flowchart TB
     API["POST /api/checks<br/>src/app.ts"]
     PAY["Payment check<br/>x402 seller or transfer log"]
     CLAIM["Reserve payment<br/>D1 payment_claims"]
-    RUN["Six paid buy calls<br/>src/check.ts"]
+    RUN["Paid buy calls<br/>src/check.ts"]
     AN["Verdict<br/>src/lib/analyze.ts"]
     DB[("D1 receipts")]
   end
@@ -186,7 +201,7 @@ flowchart TB
   end
   subgraph Data["buy gateway"]
     CAT["Catalog"]
-    X["X reads"]
+    X["X or Instagram reads"]
   end
   UI --> W --> TOK
   UI --> API --> PAY
@@ -279,7 +294,7 @@ Captured from a local run in practice mode (`DRY_RUN=true`, sample posts, no pay
 |---|---|
 | <img src="docs/screenshots/check.jpg" width="300" alt="Check form" /><br/>**Paste a handle, see the fee** | <img src="docs/screenshots/verdict-risky.jpg" width="300" alt="Risky verdict" /><br/>**Risky, with every reason** |
 | <img src="docs/screenshots/verdict-caution.jpg" width="300" alt="Caution verdict" /><br/>**Caution: read before you pay** | <img src="docs/screenshots/verdict-safe.jpg" width="300" alt="Safe verdict" /><br/>**Safe: an ordinary account, clean search** |
-| <img src="docs/screenshots/proof.jpg" width="300" alt="Proof page" /><br/>**Public receipts on /proof** | <img src="docs/screenshots/whatsapp.jpg" width="300" alt="WhatsApp coming soon" /><br/>**WhatsApp is labeled coming soon, not faked** |
+| <img src="docs/screenshots/proof.jpg" width="300" alt="Proof page" /><br/>**Public receipts on /proof** | Facebook is a disabled choice on the check form. It is not a page and not a check. |
 
 ## What's real vs. mock
 
@@ -288,11 +303,12 @@ Captured from a local run in practice mode (`DRY_RUN=true`, sample posts, no pay
 | Live site `dryRun: false`, price $0.08, PayTo, agent 10045 | ✅ Real. Read them on [/api/config](https://pay-small-check.ahmardchain.workers.dev/api/config) |
 | ERC-8004 registration, agent 10045, tag in the calldata | ✅ Real. [Transaction](https://celoscan.io/tx/0x56926cb9a3faba200070350065c04ba7ec0ae2378670428b6df95ea2a940f9c6) |
 | Unpaid `POST /api/checks` → 402 `PAYMENT-REQUIRED` for USDT, USDC, USA₮ | ✅ Real. Curl above |
-| Six buy routes (profile, about, posts, replies, followers, complaint search) | ✅ Real endpoints on `gateway.usebuy.ai`, each quoted at $0.005 on 6 Nov 2026. A live check pays them |
+| Six X buy routes (profile, about, posts, replies, followers, complaint search) | ✅ Real endpoints on `gateway.usebuy.ai`, each quoted at $0.005 on 6 Nov 2026. A live X check pays them. Total about $0.030 |
+| Instagram profile, account details, posts, followers, complaint search, and comments | ✅ Real endpoints on `gateway.usebuy.ai`, quoted on 6 Nov 2026 at $0.005, $0.005, $0.007, $0.007, $0.007, and $0.007. A check pays the first five ($0.031) and pays comments ($0.007 more, $0.038 total) only when a post shortcode comes back |
 | Buyer payments and buy transaction hashes on `/proof` | ✅ Real. Rows appear only when a buyer pays; no count is typed into this README |
 | Verdict rules, payment checks, receipts, replay protection | 🛠️ Self-built in this repo |
 | `@safevendor`, `@cautionvendor`, `@riskyvendor` | 🧪 Sample posts, labeled practice. Only when `DRY_RUN=true` (the local default in `wrangler.jsonc`). Never on the live site |
-| WhatsApp | ⏸️ Next platform after X; not built. Coming-soon page at `/whatsapp/` only. The field is disabled, nothing is uploaded, and no WhatsApp data source is connected |
+| Facebook | ⏸️ Not built. Disabled on the check form. `channel: "facebook"` returns `501`. The buy catalog read on 6 Nov 2026 had no Facebook capabilities |
 | A guarantee the vendor will deliver | Not what this is. The verdict is a reading of public posts |
 
 ## Hackathon criteria
@@ -301,9 +317,9 @@ Captured from a local run in practice mode (`DRY_RUN=true`, sample posts, no pay
 
 | Criterion | How it is met |
 |---|---|
-| Problem solved | A buyer about to pay a vendor they only know from X gets Safe, Caution, or Risky with links before that payment. See [Why it exists](#why-it-exists) |
-| Depth of integration: verified paid calls into services this project does not control | One check buys six different capabilities from the [buy gateway](https://gateway.usebuy.ai/v1/catalog). Each is its own x402 payment on Celo to the gateway's PayTo, not this app |
-| Growth for those services | Six calls per check, about $0.03 of catalog price at the 6 Nov 2026 quotes, not one repeated cheap call. Every buyer fee turns into paid demand for buy |
+| Problem solved | A buyer about to pay a vendor they only know from X or Instagram gets Safe, Caution, or Risky with links before that payment. See [Why it exists](#why-it-exists) |
+| Depth of integration: verified paid calls into services this project does not control | One check buys several different capabilities from the [buy gateway](https://gateway.usebuy.ai/v1/catalog): six on X, five or six on Instagram. Each is its own x402 payment on Celo to the gateway's PayTo, not this app |
+| Growth for those services | About $0.030 of catalog price on X and $0.031 or $0.038 on Instagram at the 6 Nov 2026 quotes, not one repeated cheap call. Every buyer fee turns into paid demand for buy |
 | Independent users are a qualifier | Any existing Celo wallet can pay, by MiniPay transfer or x402 signature. Each paid check links its buyer transaction on [/proof](https://pay-small-check.ahmardchain.workers.dev/proof/) |
 | Proof of payment | Each receipt stores the buyer transaction and every buy transaction hash |
 
@@ -401,10 +417,10 @@ Copy [`.env.example`](.env.example) to `.dev.vars` for local runs. Vars in `wran
 
 | Method | Route | Description |
 |---|---|---|
-| `POST` | `/api/checks` | Run a check. Body `{ "handle": "@name" }`. Unpaid returns `402` with `PAYMENT-REQUIRED`. Retry with `PAYMENT-SIGNATURE`, or with `{ "handle", "paymentTx": "0x…", "token": "USDT" or "cUSD" }` after a transfer. A reused payment returns `409`. `channel: "whatsapp"` returns `501`; WhatsApp checks are not built |
+| `POST` | `/api/checks` | Run a check. Body `{ "handle": "@name", "channel": "x" }` or `"instagram"`. `channel` defaults to `x`. Unpaid returns `402` with `PAYMENT-REQUIRED`. Retry with `PAYMENT-SIGNATURE`, or with `{ "handle", "channel", "paymentTx": "0x…", "token": "USDT" or "cUSD" }` after a transfer. A reused payment returns `409`. `channel: "facebook"` returns `501`. Any other channel, including `"whatsapp"`, returns `400` |
 | `GET` | `/api/receipts` | Latest public receipts, `?limit=` up to 100 |
 | `GET` | `/api/receipts/:id` | One receipt |
-| `GET` | `/api/config` | Public config: price, PayTo, tokens, agent id, the six calls |
+| `GET` | `/api/config` | Public config: price, PayTo, tokens, agent id, the six X calls, the Instagram calls, and `facebook.status` |
 | `GET` | `/api/health` | Liveness and `dryRun` |
 | `GET` | `/agent.json` | ERC-8004 registration file (also `/.well-known/agent-registration.json`) |
 
@@ -412,7 +428,7 @@ Copy [`.env.example`](.env.example) to `.dev.vars` for local runs. Vars in `wran
 
 ```text
 pay-small-check/
-├── public/                    # mobile pages: check, /proof, /how-to, /about, /whatsapp stub, terms, privacy, support
+├── public/                    # mobile pages: check, /proof, /how-to, /about, terms, privacy, support
 ├── src/
 │   ├── app.ts                 # HTTP API, both payment rails, payment reservation
 │   ├── check.ts               # catalog, then the six paid calls
@@ -438,7 +454,9 @@ pay-small-check/
 
 ## Known limits
 
-- Version 1 reads X only. WhatsApp is the next planned platform; its page is a non-submitting stub.
+- X and Instagram are the working channels. Facebook is not built: the choice is disabled, and `channel: "facebook"` returns `501`. `channel: "whatsapp"` returns `400`.
+- Instagram comments run only when the posts payload contains a shortcode. The 6 Nov 2026 quotes are $0.031 without that call and $0.038 with it.
+- Instagram username reads often have no join date. Unknown age is a warning, so that account is not marked Safe on age alone.
 - cUSD cannot be an x402 payment on the hosted facilitator. It is a transfer.
 - x402 payments do not carry `celo_aac08e9358f3`. Use the PayTo address for those.
 - The complaint-search payload is whatever the gateway returns. A shape this app cannot read is a gap, not a clean bill of health.
@@ -447,7 +465,7 @@ pay-small-check/
 
 ## Roadmap
 
-- **WhatsApp — next after X:** the buyer would paste the vendor's number or chat text themselves, once there is a data source the agent can actually pay for. Not built; the current page is a stub.
+- **Facebook:** a real check once the buy catalog lists a Facebook source this agent can pay for. Not built.
 - **Bind transfers to their sender:** have the buyer sign the handle with the paying wallet, so a transfer hash cannot be claimed by someone else.
 - **Shareable verdicts:** a link a buyer can drop in the vendor's replies.
 

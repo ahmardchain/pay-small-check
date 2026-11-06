@@ -1,3 +1,5 @@
+import type { CheckChannel } from "./capabilities.js";
+import { instagramProfileUrl } from "./handles.js";
 import { accountLink, parseTime, postLink, type AccountFacts, type PostFacts } from "./normalize.js";
 
 export type Verdict = "safe" | "caution" | "risky";
@@ -91,16 +93,22 @@ function sameAuthor(post: PostFacts, handle: string): boolean {
   return post.handle.toLowerCase() === handle.toLowerCase();
 }
 
-export function analyzeVendor(handle: string, snapshot: VendorSnapshot, now = new Date()): Analysis {
+export function analyzeVendor(
+  handle: string,
+  snapshot: VendorSnapshot,
+  now = new Date(),
+  channel: CheckChannel = "x",
+): Analysis {
   const signals: Signal[] = [];
   const evidence: Evidence[] = [];
   let score = 0;
   const profile = snapshot.profile;
 
+  const onInstagram = channel === "instagram";
   evidence.push({
     kind: "profile",
-    label: `@${handle} on X`,
-    url: accountLink(handle),
+    label: `@${handle} on ${onInstagram ? "Instagram" : "X"}`,
+    url: onInstagram ? instagramProfileUrl(handle) : accountLink(handle),
   });
 
   if (!profile) {

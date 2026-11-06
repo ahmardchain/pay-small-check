@@ -1,5 +1,5 @@
 import type { VendorSnapshot } from "./analyze.js";
-import { CHECK_PLAN } from "./capabilities.js";
+import { planFor, type CheckChannel } from "./capabilities.js";
 
 const open = { profile: false, posts: false, replies: false, followers: false, mentions: false };
 
@@ -128,8 +128,8 @@ function post(handle: string, id: string, text: string) {
   };
 }
 
-export function practiceBuyCalls() {
-  return CHECK_PLAN.map((plan) => ({
+export function practiceBuyCalls(channel: CheckChannel = "x") {
+  return planFor(channel).map((plan) => ({
     key: plan.key,
     capability: plan.id,
     title: plan.title,

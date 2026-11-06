@@ -22,7 +22,7 @@ Deadline: **Mon 9 Nov 2026, 09:00 GMT** (10:00 Lagos).
 
 ## Description
 
-A buyer who found a vendor on X pastes the handle and pays $0.08 on Celo. The agent spends that fee on six paid reads of the account through buy: profile, about card, recent posts, replies, a follower sample, and a complaint search. It returns Safe, Caution, or Risky with the posts behind the verdict, and stores a public receipt with the buyer's payment and every buy transaction.
+A buyer who found a vendor on X or Instagram pastes the handle and pays $0.08 on Celo. The agent spends that fee on paid reads of the account through buy. On X that is profile, about card, recent posts, replies, a follower sample, and a complaint search. On Instagram it is the profile, account details, posts, a follower sample, and a complaint search, plus comments when a post shortcode comes back. It returns Safe, Caution, or Risky with the posts behind the verdict, and stores a public receipt with the buyer's payment and every buy transaction. Facebook is not built.
 
 ## Problem
 

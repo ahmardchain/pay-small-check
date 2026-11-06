@@ -33,6 +33,8 @@ test("agent.json publishes the issued code and the public agent wallet", async (
   assert.equal(response.status, 200);
   const body = await bodyOf(response);
   assert.match(body.description, /celo_aac08e9358f3/);
+  assert.match(body.description, /Instagram/);
+  assert.match(body.description, /Facebook is not built/);
   const wallet = body.services.find((service: { name: string }) => service.name === "agentWallet");
   assert.equal(wallet.endpoint, "eip155:42220:0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08");
 });
@@ -60,8 +62,15 @@ test("practice mode returns a verdict without payment and stores a receipt", asy
   assert.equal(list.receipts[0].id, body.id);
 });
 
-test("whatsapp is refused and does not pretend to score a number", async () => {
-  const app = createApp({ store: memoryStore() });
+test("whatsapp is an unsupported channel and is not scored", async () => {
+  let called = false;
+  const app = createApp({
+    store: memoryStore(),
+    fetchImpl: async () => {
+      called = true;
+      throw new Error("whatsapp must not call the network");
+    },
+  });
   const response = await app.request(
     "http://localhost/api/checks",
     {
@@ -69,11 +78,13 @@ test("whatsapp is refused and does not pretend to score a number", async () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ channel: "whatsapp", handle: "08030000000" }),
     },
-    { DRY_RUN: "true" },
+    { DRY_RUN: "false", PAY_TO: payTo, AGENT_PRIVATE_KEY: payer },
   );
-  assert.equal(response.status, 501);
+  assert.equal(response.status, 400);
   const body = await bodyOf(response);
-  assert.match(body.message, /does not buy WhatsApp/);
+  assert.equal(body.error, "unsupported_channel");
+  assert.equal(body.message, "Unsupported channel.");
+  assert.equal(called, false);
 });
 
 test("a live check without a payment returns a real x402 challenge for USDT", async () => {
