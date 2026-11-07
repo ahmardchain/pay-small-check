@@ -19,11 +19,8 @@
       "enabled": true
     }
   },
-  // A check parses several paid JSON payloads. Standard usage model required.
-  // No cpu_ms here: custom CPU limits need a paid Workers plan.
-  "limits": {
-    "subrequests": 50
-  },
+  // No "limits" block: Cloudflare rejects it on the Free plan (code 100328).
+  // Free already allows 50 outside subrequests per request, which a check fits in.
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
