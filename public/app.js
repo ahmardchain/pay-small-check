@@ -18,6 +18,7 @@ const stateLine = document.querySelector("#state");
 const banner = document.querySelector("#banner");
 const result = document.querySelector("#result");
 const go = document.querySelector("#go");
+const feeBox = document.querySelector("#fee");
 
 const ADJECTIVES = ["calm", "bright", "steady", "kind", "quick", "bold", "quiet", "fair", "keen", "warm"];
 const NOUNS = ["mango", "palm", "market", "kola", "river", "lantern", "basket", "drum", "cocoa", "harbor"];
@@ -63,12 +64,14 @@ async function loadConfig() {
     banner.textContent = "Practice mode is on. No payment, and the verdict uses sample posts. Try @safevendor, @cautionvendor, or @riskyvendor.";
     tokenSelect.closest("label").hidden = true;
     priceLine.textContent = "Practice checks are free.";
+    feeBox.textContent = "$0.00";
     go.textContent = "Run practice check";
     return;
   }
   const usdt = config.transferTokens.find((token) => token.symbol === "USDT");
   priceLine.textContent = `One check is ${config.priceUsd} USDT, or the same amount in cUSD.`;
   if (usdt) priceLine.textContent = `One check is ${formatAmount(usdt.amount, usdt.decimals)} USDT, or the same value in cUSD.`;
+  feeBox.textContent = `$${config.priceUsd}`;
   if (inMiniPay()) {
     whoLine.textContent = "Opened in MiniPay. The network fee is paid in the stablecoin you pick.";
     connect(true);
@@ -91,7 +94,7 @@ async function connect(silent) {
   }
   const accounts = await provider.request({ method: "eth_requestAccounts", params: [] });
   account = accounts?.[0] ?? null;
-  if (account) whoLine.textContent = `Connected as ${displayName(account)}.`;
+  if (account) whoLine.textContent = `Paying from ${displayName(account)}.`;
   return account;
 }
 
@@ -261,7 +264,7 @@ function render(receipt) {
   result.hidden = false;
   const verdict = receipt.verdict || "caution";
   const signals = (receipt.signals || [])
-    .map((signal) => `<li class="tone-${signal.tone}"><strong>${escapeHtml(signal.title)}</strong><br />${escapeHtml(signal.detail)}</li>`)
+    .map((signal) => `<li class="tone-${escapeAttr(signal.tone)}"><strong>${escapeHtml(signal.title)}</strong>${escapeHtml(signal.detail)}</li>`)
     .join("");
   const evidence = (receipt.evidence || [])
     .map((item) => {
@@ -280,12 +283,14 @@ function render(receipt) {
     ? `<a href="https://celoscan.io/tx/${escapeAttr(receipt.userPayment.txHash)}">Your payment</a>`
     : "No user payment on this practice check.";
   result.innerHTML = `
-    <div class="stamp ${verdict}"><div><small>Verdict</small><br />${escapeHtml(verdict)}</div></div>
+    <div class="stamp ${escapeAttr(verdict)}" role="img" aria-label="Verdict: ${escapeAttr(verdict)}">${escapeHtml(verdict)}</div>
     <p>${escapeHtml(receipt.summary || "")}</p>
+    <h2>Why</h2>
     <ul class="signals">${signals}</ul>
     <h2>Evidence</h2>
     <ul class="evidence">${evidence}</ul>
     <div class="receipt">
+      <h2>Receipt</h2>
       <div>${userTx}</div>
       <div><a href="/proof/?id=${escapeAttr(receipt.id)}">Open the public receipt</a></div>
       <ul class="evidence">${calls}</ul>

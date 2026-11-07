@@ -2,51 +2,76 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
     <title>Pay Small Check</title>
     <meta name="description" content="Check an X or Instagram vendor before you pay them. A small stablecoin fee on Celo buys the public record and returns Safe, Caution, or Risky." />
+    <link rel="icon" href="/mark.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <main class="wrap stack">
-      <header class="brand">
-        <div>
-          <p class="kicker">Before you transfer</p>
-          <h1>Pay Small Check</h1>
-        </div>
+      <header class="masthead">
+        <a class="brandmark" href="/"><img src="/mark.svg" alt="" width="34" height="34" />Pay Small Check</a>
+        <nav aria-label="Pages">
+          <a href="/proof/">Proof</a>
+        </nav>
       </header>
-      <p class="lede">Paste a vendor's X or Instagram handle. Pay a small fee in stablecoin. Get a plain verdict, with the posts it came from.</p>
+
+      <h1>Check the vendor before you pay them.</h1>
+      <p class="lede">Paste their X or Instagram handle and pay a small fee in digital dollars. You get Safe, Caution, or Risky, with the posts it came from.</p>
+
       <section id="banner" class="banner" hidden></section>
-      <form id="check-form" class="card stack">
-        <label>
-          Platform
-          <select id="channel" name="channel">
-            <option value="x" selected>X</option>
-            <option value="instagram">Instagram</option>
-            <option value="facebook" disabled>Facebook — coming soon</option>
-          </select>
-        </label>
-        <label>
-          <span id="handle-label">X handle</span>
-          <input id="handle" name="handle" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="@shopname" required />
-        </label>
-        <label id="token-field">
-          Pay with
-          <select id="token">
-            <option value="USDT">USDT</option>
-            <option value="cUSD">cUSD</option>
-          </select>
-        </label>
-        <p id="price" class="status">Loading the fee…</p>
-        <p id="who" class="status"></p>
+
+      <form id="check-form" class="stack">
+        <div class="cheque">
+          <div class="cheque-head">
+            <div>
+              <strong>Vendor check</strong>
+              <span>One handle, one fee</span>
+            </div>
+            <div class="fee-box" id="fee" aria-label="Fee">$0.08</div>
+          </div>
+
+          <div class="cheque-row">
+            <div class="field">
+              <label for="channel">Check on</label>
+              <select id="channel" name="channel">
+                <option value="x" selected>X</option>
+                <option value="instagram">Instagram</option>
+                <option value="facebook" disabled>Facebook (coming soon)</option>
+              </select>
+            </div>
+            <label class="field" id="token-field">
+              <span>Pay with</span>
+              <select id="token">
+                <option value="USDT">USDT</option>
+                <option value="cUSD">cUSD</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="handle" id="handle-label">X handle</label>
+            <input id="handle" name="handle" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="@shopname" required />
+          </div>
+
+          <p id="price" class="note">Loading the fee…</p>
+
+          <div class="micr" aria-hidden="true"><span>Celo 42220</span><span>Agent 10045</span></div>
+        </div>
+
         <button class="primary" id="go" type="submit">Check this vendor</button>
-        <p id="state" class="status" role="status"></p>
-        <p class="status">Facebook is coming soon. That choice is disabled, and a Facebook request is not a check.</p>
+        <p id="who" class="status"></p>
+        <p id="state" class="status" role="status" aria-live="polite"></p>
       </form>
-      <section id="result" class="card stack" hidden></section>
+
+      <section id="result" class="slip" hidden aria-live="polite"></section>
+
       <footer class="footer">
         <a href="/proof/">Proof</a>
-        <a href="/how-to/">How to use</a>
+        <a href="/how-to/">How it works</a>
         <a href="/about/">About</a>
         <a href="/terms/">Terms</a>
         <a href="/privacy/">Privacy</a>
