@@ -20,8 +20,8 @@
     }
   },
   // A check parses several paid JSON payloads. Standard usage model required.
+  // No cpu_ms here: custom CPU limits need a paid Workers plan.
   "limits": {
-    "cpu_ms": 30000,
     "subrequests": 50
   },
   "assets": {
