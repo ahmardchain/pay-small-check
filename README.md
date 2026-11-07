@@ -307,7 +307,7 @@ Captured from a local run in practice mode (`DRY_RUN=true`, sample posts, no pay
 | Instagram profile, account details, posts, followers, complaint search, and comments | ✅ Real endpoints on `gateway.usebuy.ai`, quoted on 6 Nov 2026 at $0.005, $0.005, $0.007, $0.007, $0.007, and $0.007. A check pays the first five ($0.031) and pays comments ($0.007 more, $0.038 total) only when a post shortcode comes back |
 | Buyer payments and buy transaction hashes on `/proof` | ✅ Real. Rows appear only when a buyer pays; no count is typed into this README |
 | Verdict rules, payment checks, receipts, replay protection | 🛠️ Self-built in this repo |
-| `@safevendor`, `@cautionvendor`, `@riskyvendor` | 🧪 Sample posts, labeled practice. Only when `DRY_RUN=true` (the local default in `wrangler.jsonc`). Never on the live site |
+| `@safevendor`, `@cautionvendor`, `@riskyvendor` | 🧪 Sample posts, labeled practice. Only when `DRY_RUN=true`, which `npm run dev` sets. Never on the live site |
 | Facebook | ⏸️ Not built. Disabled on the check form. `channel: "facebook"` returns `501`. The buy catalog read on 6 Nov 2026 had no Facebook capabilities |
 | A guarantee the vendor will deliver | Not what this is. The verdict is a reading of public posts |
 
@@ -364,7 +364,7 @@ npm test
 npm run check:dry -- @riskyvendor
 ```
 
-A local checkout spends nothing until `DRY_RUN` is `false` and the secrets exist. `wrangler.jsonc` ships with `DRY_RUN=true`, so `npm run dev` stamps a verdict from sample posts and says so. Practice handles: `@safevendor`, `@cautionvendor`, `@riskyvendor`.
+`wrangler.jsonc` holds the live settings (`DRY_RUN=false`, agent 10045, the production D1 database). `npm run dev` overrides it with `DRY_RUN=true`, so a local run spends nothing and stamps a verdict from sample posts. Practice handles: `@safevendor`, `@cautionvendor`, `@riskyvendor`.
 
 | Command | What it does | Spends? |
 |---|---|---|
@@ -373,17 +373,17 @@ A local checkout spends nothing until `DRY_RUN` is `false` and the secrets exist
 | `npm run build` | Builds the React pages and static files into `dist/` | No |
 | `npm run check:dry -- @handle` | Prints a practice verdict | No |
 | `npm run db:migrate:local` | Applies D1 migrations to the local database | No |
-| `npm run dev` | Builds, then runs the Worker on localhost. Practice mode unless `DRY_RUN=false` | No, while `DRY_RUN=true` |
+| `npm run dev` | Builds, then runs the Worker on localhost in practice mode | No |
 | `npm run register:8004 -- --dry-run` | Prints the tagged `register` transaction. Already broadcast; see the tx above | No |
 | `npm run db:migrate` | Applies D1 migrations to the remote database | No |
-| `npm run deploy` | Builds, then deploys to Cloudflare Workers | Deploy only |
+| `npm run deploy` | Builds, then deploys to Cloudflare Workers. Pushes to `main` do the same through Cloudflare's GitHub integration | Deploy only |
 
 To take live payments from a fresh deploy:
 
 1. Set `AGENT_PRIVATE_KEY` for `0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08` as a Wrangler secret. The key is not in this repo.
 2. Set `X402_API_KEY` from [x402.celo.org](https://x402.celo.org) as a Wrangler secret.
-3. Set `DRY_RUN=false` and `AGENT_ID=10045`.
-4. Create the D1 database and run `npm run db:migrate` before every deploy that adds a migration.
+3. `DRY_RUN=false` and `AGENT_ID=10045` are already in `wrangler.jsonc`. For a new account, create a D1 database and put its id in `wrangler.jsonc`.
+4. Run `npm run db:migrate` before every deploy that adds a migration.
 5. Fund the wallet with USDT (or USDC / USAT if `BUY_TOKEN` changes). About $0.03 of the $0.08 fee is the six data calls at the 6 Nov catalog quotes.
 6. Run `npm run deploy`.
 

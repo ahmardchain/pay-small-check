@@ -2,6 +2,14 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "pay-small-check",
   "main": "src/index.ts",
+  // Cloudflare Git builds run plain `wrangler deploy`, so the frontend build
+  // lives here: React pages from web/ plus public/ are written to dist/.
+  "build": {
+    "command": "npm run build",
+    "watch_dir": "web/src"
+  },
+  // Keep any variables set in the Cloudflare dashboard on deploy.
+  "keep_vars": true,
   "compatibility_date": "2026-11-06",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
@@ -27,12 +35,38 @@
     {
       "binding": "DB",
       "database_name": "pay-small-check",
-      "database_id": "00000000-0000-4000-8000-000000000001",
+      "database_id": "71e4401a-c270-4052-8048-f317b6687b39",
       "migrations_dir": "migrations"
     }
   ],
+  // Branch previews (wrangler preview) run in practice mode against their own
+  // database, so a preview never spends money or writes to live receipts.
+  "previews": {
+    "vars": {
+      "DRY_RUN": "true",
+      "CHECK_PRICE_USD": "0.08",
+      "BUY_TOKEN": "USDT",
+      "MAX_BUY_ATOMIC_PER_CALL": "20000",
+      "ATTRIBUTION_CODE": "celo_aac08e9358f3",
+      "PAY_TO": "0x8e23e92f0ec2bd6B8D004Bc913C17AE412322d08",
+      "CELO_RPC_URL": "https://forno.celo.org",
+      "BUY_GATEWAY_CATALOG": "https://gateway.usebuy.ai/v1/catalog",
+      "X402_FACILITATOR_URL": "https://api.x402.celo.org",
+      "PUBLIC_APP_URL": "",
+      "AGENT_ID": "10045",
+      "GITHUB_REPO": "ahmardchain/pay-small-check"
+    },
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "pay-small-check-preview",
+        "database_id": "280e28e8-5312-47df-9335-481b89cbb7cb",
+        "migrations_dir": "migrations"
+      }
+    ]
+  },
   "vars": {
-    "DRY_RUN": "true",
+    "DRY_RUN": "false",
     "CHECK_PRICE_USD": "0.08",
     "BUY_TOKEN": "USDT",
     "MAX_BUY_ATOMIC_PER_CALL": "20000",
@@ -42,7 +76,7 @@
     "BUY_GATEWAY_CATALOG": "https://gateway.usebuy.ai/v1/catalog",
     "X402_FACILITATOR_URL": "https://api.x402.celo.org",
     "PUBLIC_APP_URL": "",
-    "AGENT_ID": "",
+    "AGENT_ID": "10045",
     "GITHUB_REPO": "ahmardchain/pay-small-check"
   }
 }
