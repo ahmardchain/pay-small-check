@@ -109,151 +109,177 @@ export function CheckApp() {
   return (
     <>
       <Backdrop />
-      <div className="relative mx-auto flex min-h-svh w-full max-w-md flex-col gap-8 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] sm:max-w-lg">
+      <div className="relative mx-auto flex min-h-svh w-full max-w-md lg:max-w-6xl lg:px-8 flex-col gap-8 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] sm:max-w-lg">
         <SiteHeader />
 
-        <section className="flex flex-col items-start gap-4">
-          <a href="/proof/" className="group rounded-full border border-black/5 bg-neutral-100 text-sm transition-all ease-in hover:bg-neutral-200 dark:border-white/5 dark:bg-neutral-900 dark:hover:bg-neutral-800">
-            <AnimatedShinyText className="inline-flex items-center justify-center gap-2 px-3 py-1 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400">
-              <span className="size-1.5 rounded-full bg-brand" aria-hidden="true" />
-              Live on Celo mainnet
-              <ArrowUpRight className="size-3.5 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
-            </AnimatedShinyText>
-          </a>
-          <h1 className="text-[2.5rem] leading-[1.02] font-semibold tracking-[-0.04em] text-balance sm:text-5xl">
-            Check the vendor before you pay them.
-          </h1>
-          <p className="text-base text-muted-foreground text-pretty">
-            Paste their X or Instagram handle and pay a small fee in digital dollars. You get Safe, Caution, or Risky, with the posts it came from.
-          </p>
-        </section>
+        <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-start lg:gap-16 lg:pt-10">
+          <div className="flex flex-col gap-8 lg:sticky lg:top-10">
+            <section className="flex flex-col items-start gap-4">
+              <a href="/proof/" className="group rounded-full border border-black/5 bg-neutral-100 text-sm transition-all ease-in hover:bg-neutral-200 dark:border-white/5 dark:bg-neutral-900 dark:hover:bg-neutral-800">
+                <AnimatedShinyText className="inline-flex items-center justify-center gap-2 px-3 py-1 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400">
+                  <span className="size-1.5 rounded-full bg-brand" aria-hidden="true" />
+                  Live on Celo mainnet
+                  <ArrowUpRight className="size-3.5 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
+                </AnimatedShinyText>
+              </a>
+              <h1 className="text-[2.5rem] leading-[1.02] font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:text-6xl">
+                Check the vendor before you pay them.
+              </h1>
+              <p className="text-base text-muted-foreground text-pretty">
+                Paste their X or Instagram handle and pay a small fee in digital dollars. You get Safe, Caution, or Risky, with the posts it came from.
+              </p>
+            </section>
 
-        {config?.dryRun && (
-          <Alert>
-            <FlaskConical />
-            <AlertTitle>Practice mode</AlertTitle>
-            <AlertDescription>No payment, and the verdict uses sample posts. Try @safevendor, @cautionvendor, or @riskyvendor.</AlertDescription>
-          </Alert>
-        )}
-
-        <form onSubmit={onSubmit}>
-          <Card className="relative overflow-hidden">
-            <CardHeader>
-              <CardTitle className="text-lg">Check a vendor</CardTitle>
-              <CardDescription>{feeLine}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2.5">
-                <Label id="platform-label">Platform</Label>
-                <ToggleGroup
-                  type="single"
-                  variant="outline"
-                  value={channel}
-                  onValueChange={(value) => value && setChannel(value as Channel)}
-                  aria-labelledby="platform-label"
-                  className="w-full"
-                >
-                  <ToggleGroupItem value="x" className="h-11 flex-1">X</ToggleGroupItem>
-                  <ToggleGroupItem value="instagram" className="h-11 flex-1">Instagram</ToggleGroupItem>
-                  <ToggleGroupItem value="facebook" disabled className="h-11 flex-1" aria-describedby="facebook-soon">Facebook</ToggleGroupItem>
-                </ToggleGroup>
-                <p id="facebook-soon" className="text-sm text-muted-foreground">Facebook is coming soon.</p>
-              </div>
-
-              <div className="flex flex-col gap-2.5">
-                <Label htmlFor="handle">{channel === "instagram" ? "Instagram username" : "X handle"}</Label>
-                <InputGroup className="h-12">
-                  <InputGroupAddon>
-                    <InputGroupText className="text-base">@</InputGroupText>
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    id="handle"
-                    name="handle"
-                    required
-                    autoComplete="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    placeholder={channel === "instagram" ? "shop.name" : "shopname"}
-                    value={handle}
-                    onChange={(event) => setHandle(event.target.value)}
-                    className="text-base"
-                  />
-                </InputGroup>
-              </div>
-
-              {!config?.dryRun && (
-                <div className="flex flex-col gap-2.5">
-                  <Label id="token-label">Pay with</Label>
-                  <ToggleGroup
-                    type="single"
-                    variant="outline"
-                    value={token}
-                    onValueChange={(value) => value && setToken(value as Token)}
-                    aria-labelledby="token-label"
-                    className="w-full"
-                  >
-                    <ToggleGroupItem value="USDT" className="h-11 flex-1">USDT</ToggleGroupItem>
-                    <ToggleGroupItem value="cUSD" className="h-11 flex-1">cUSD</ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter className="flex flex-col items-stretch gap-3">
-              <Separator />
-              <div className="flex items-baseline justify-between pt-1">
-                <span className="text-sm text-muted-foreground">Fee</span>
-                <span className="font-mono text-2xl font-medium tabular-nums">{fee}</span>
-              </div>
-              <ShimmerButton type="submit" disabled={busy} borderRadius="12px" background="var(--primary)" shimmerColor="#34d399" className="h-12 w-full text-base font-medium text-primary-foreground disabled:opacity-70">
-                {busy ? (
-                  <span className="inline-flex items-center gap-2">
-                    <Spinner /> {state || "Preparing transaction…"}
-                  </span>
-                ) : config?.dryRun ? (
-                  "Run practice check"
-                ) : (
-                  "Check this vendor"
-                )}
-              </ShimmerButton>
-              {account && <p className="text-center text-sm text-muted-foreground">Paying from {displayName(account)}.</p>}
-              {!account && inMiniPay() && <p className="text-center text-sm text-muted-foreground">Opened in MiniPay. The network fee is paid in the stablecoin you pick.</p>}
-              <p className="sr-only" role="status" aria-live="polite">{state}</p>
-            </CardFooter>
-            <BorderBeam duration={8} size={120} colorFrom="#34d399" colorTo="#059669" />
-          </Card>
-        </form>
-
-        {error && (
-          <Alert variant="destructive" role="alert">
-            <AlertCircle />
-            <AlertTitle>The check did not run</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {receipt && (
-          <div ref={resultRef} className="scroll-mt-4">
-            <BlurFade>
-              <VerdictCard receipt={receipt} />
-            </BlurFade>
+            <div className="hidden lg:block">
+                <ItemGroup className="gap-2">
+                  {[
+                    ["1", "Paste the handle", "From X or Instagram."],
+                    ["2", "Pay the small fee", "USDT or cUSD on Celo."],
+                    ["3", "Read the verdict", "With the posts behind it."],
+                  ].map(([step, title, body]) => (
+                    <Item key={step} variant="muted" size="sm">
+                      <ItemMedia variant="icon" className="font-mono text-xs">{step}</ItemMedia>
+                      <ItemContent>
+                        <ItemTitle>{title}</ItemTitle>
+                        <ItemDescription>{body}</ItemDescription>
+                      </ItemContent>
+                    </Item>
+                  ))}
+                </ItemGroup>
+            </div>
           </div>
-        )}
 
-        <ItemGroup className="gap-2">
-          {[
-            ["1", "Paste the handle", "From X or Instagram."],
-            ["2", "Pay the small fee", "USDT or cUSD on Celo."],
-            ["3", "Read the verdict", "With the posts behind it."],
-          ].map(([step, title, body]) => (
-            <Item key={step} variant="muted" size="sm">
-              <ItemMedia variant="icon" className="font-mono text-xs">{step}</ItemMedia>
-              <ItemContent>
-                <ItemTitle>{title}</ItemTitle>
-                <ItemDescription>{body}</ItemDescription>
-              </ItemContent>
-            </Item>
-          ))}
-        </ItemGroup>
+          <div className="flex flex-col gap-8">
+            {config?.dryRun && (
+              <Alert>
+                <FlaskConical />
+                <AlertTitle>Practice mode</AlertTitle>
+                <AlertDescription>No payment, and the verdict uses sample posts. Try @safevendor, @cautionvendor, or @riskyvendor.</AlertDescription>
+              </Alert>
+            )}
+
+            <form onSubmit={onSubmit}>
+              <Card className="relative overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="text-lg">Check a vendor</CardTitle>
+                  <CardDescription>{feeLine}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-2.5">
+                    <Label id="platform-label">Platform</Label>
+                    <ToggleGroup
+                      type="single"
+                      variant="outline"
+                      value={channel}
+                      onValueChange={(value) => value && setChannel(value as Channel)}
+                      aria-labelledby="platform-label"
+                      className="w-full"
+                    >
+                      <ToggleGroupItem value="x" className="h-11 flex-1">X</ToggleGroupItem>
+                      <ToggleGroupItem value="instagram" className="h-11 flex-1">Instagram</ToggleGroupItem>
+                      <ToggleGroupItem value="facebook" disabled className="h-11 flex-1" aria-describedby="facebook-soon">Facebook</ToggleGroupItem>
+                    </ToggleGroup>
+                    <p id="facebook-soon" className="text-sm text-muted-foreground">Facebook is coming soon.</p>
+                  </div>
+
+                  <div className="flex flex-col gap-2.5">
+                    <Label htmlFor="handle">{channel === "instagram" ? "Instagram username" : "X handle"}</Label>
+                    <InputGroup className="h-12">
+                      <InputGroupAddon>
+                        <InputGroupText className="text-base">@</InputGroupText>
+                      </InputGroupAddon>
+                      <InputGroupInput
+                        id="handle"
+                        name="handle"
+                        required
+                        autoComplete="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        placeholder={channel === "instagram" ? "shop.name" : "shopname"}
+                        value={handle}
+                        onChange={(event) => setHandle(event.target.value)}
+                        className="text-base"
+                      />
+                    </InputGroup>
+                  </div>
+
+                  {!config?.dryRun && (
+                    <div className="flex flex-col gap-2.5">
+                      <Label id="token-label">Pay with</Label>
+                      <ToggleGroup
+                        type="single"
+                        variant="outline"
+                        value={token}
+                        onValueChange={(value) => value && setToken(value as Token)}
+                        aria-labelledby="token-label"
+                        className="w-full"
+                      >
+                        <ToggleGroupItem value="USDT" className="h-11 flex-1">USDT</ToggleGroupItem>
+                        <ToggleGroupItem value="cUSD" className="h-11 flex-1">cUSD</ToggleGroupItem>
+                      </ToggleGroup>
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter className="flex flex-col items-stretch gap-3">
+                  <Separator />
+                  <div className="flex items-baseline justify-between pt-1">
+                    <span className="text-sm text-muted-foreground">Fee</span>
+                    <span className="font-mono text-2xl font-medium tabular-nums">{fee}</span>
+                  </div>
+                  <ShimmerButton type="submit" disabled={busy} borderRadius="12px" background="var(--primary)" shimmerColor="#34d399" className="h-12 w-full text-base font-medium text-primary-foreground disabled:opacity-70">
+                    {busy ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Spinner /> {state || "Preparing transaction…"}
+                      </span>
+                    ) : config?.dryRun ? (
+                      "Run practice check"
+                    ) : (
+                      "Check this vendor"
+                    )}
+                  </ShimmerButton>
+                  {account && <p className="text-center text-sm text-muted-foreground">Paying from {displayName(account)}.</p>}
+                  {!account && inMiniPay() && <p className="text-center text-sm text-muted-foreground">Opened in MiniPay. The network fee is paid in the stablecoin you pick.</p>}
+                  <p className="sr-only" role="status" aria-live="polite">{state}</p>
+                </CardFooter>
+                <BorderBeam duration={8} size={120} colorFrom="#34d399" colorTo="#059669" />
+              </Card>
+            </form>
+
+            {error && (
+              <Alert variant="destructive" role="alert">
+                <AlertCircle />
+                <AlertTitle>The check did not run</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {receipt && (
+              <div ref={resultRef} className="scroll-mt-4">
+                <BlurFade>
+                  <VerdictCard receipt={receipt} />
+                </BlurFade>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="lg:hidden">
+            <ItemGroup className="gap-2">
+              {[
+                ["1", "Paste the handle", "From X or Instagram."],
+                ["2", "Pay the small fee", "USDT or cUSD on Celo."],
+                ["3", "Read the verdict", "With the posts behind it."],
+              ].map(([step, title, body]) => (
+                <Item key={step} variant="muted" size="sm">
+                  <ItemMedia variant="icon" className="font-mono text-xs">{step}</ItemMedia>
+                  <ItemContent>
+                    <ItemTitle>{title}</ItemTitle>
+                    <ItemDescription>{body}</ItemDescription>
+                  </ItemContent>
+                </Item>
+              ))}
+            </ItemGroup>
+        </div>
 
         <SiteFooter />
       </div>
