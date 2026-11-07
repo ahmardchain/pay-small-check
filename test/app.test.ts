@@ -7,7 +7,7 @@ import { CHECK_PLAN } from "../src/lib/capabilities.js";
 import { memoryStore } from "../src/lib/receipts.js";
 import type { ChainReader } from "../src/lib/payments.js";
 import { TOKENS } from "../src/lib/tokens.js";
-import { decodeHeader } from "../public/x402.js";
+import { decodeHeader } from "../web/src/lib/x402.js";
 
 const payer = `0x${"11".repeat(32)}`;
 const payTo = "0x1111111111111111111111111111111111111111";

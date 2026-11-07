@@ -170,7 +170,7 @@ MiniPay does not sign the x402 typed-data payload, so the page sends a normal tr
 | Celo x402 facilitator | Verifies and settles the buyer's gasless authorization | Once per x402 check | [`src/x402-seller.ts`](src/x402-seller.ts) |
 | Celo RPC | Reads a transfer's receipt and `Transfer` log to confirm the exact fee reached PayTo | Once per transfer check | [`src/lib/payments.ts`](src/lib/payments.ts) |
 | ERC-8004 | Agent 10045 registered from the agent wallet | Once, already mined | [`scripts/register-8004.ts`](scripts/register-8004.ts), [`src/agent-card.ts`](src/agent-card.ts) |
-| ERC-8021 | `celo_aac08e9358f3` appended to registration and MiniPay transfer calldata | Every tagged transaction | [`src/lib/attribution.ts`](src/lib/attribution.ts), [`public/app.js`](public/app.js) |
+| ERC-8021 | `celo_aac08e9358f3` appended to registration and MiniPay transfer calldata | Every tagged transaction | [`src/lib/attribution.ts`](src/lib/attribution.ts), [`web/src/lib/pay.js`](web/src/lib/pay.js) |
 
 Engineering notes:
 
@@ -183,7 +183,7 @@ Engineering notes:
 ```mermaid
 flowchart TB
   subgraph Buyer["Buyer (phone)"]
-    UI["Check page<br/>public/app.js"]
+    UI["Check page<br/>web/src/check-app.tsx"]
     W["MiniPay or EIP-712 wallet"]
   end
   subgraph Worker["Cloudflare Worker (Hono)"]
@@ -341,8 +341,9 @@ Copy-paste form answers are in [SUBMISSION.md](SUBMISSION.md).
 
 | Layer | Choice |
 |---|---|
-| Runtime | Cloudflare Workers (Standard usage model), static pages from `public/` |
+| Runtime | Cloudflare Workers (Standard usage model), serving the built pages from `dist/` |
 | HTTP | Hono 4 |
+| Frontend | React 19, Vite, Tailwind CSS 4, [shadcn/ui](https://ui.shadcn.com) components and [Magic UI](https://magicui.design) effects (shimmer button, border beam, dot pattern, shiny text, blur fade), Geist type |
 | Storage | Cloudflare D1: `receipts`, `payment_claims` |
 | Chain | viem on Celo mainnet (`forno.celo.org`) |
 | Payments | `@x402/core`, `@x402/evm`, `@x402/fetch`, `@x402/hono`; Celo hosted facilitator |
@@ -367,14 +368,15 @@ A local checkout spends nothing until `DRY_RUN` is `false` and the secrets exist
 
 | Command | What it does | Spends? |
 |---|---|---|
-| `npm test` | 27 tests: verdicts, catalog plan, ERC-8021 round-trip, x402 challenge, transfer receipt, parallel payment replays on both rails. The x402 challenge test calls the hosted facilitator, so it needs network | No |
-| `npm run typecheck` | `tsc --noEmit` | No |
+| `npm test` | 39 tests: verdicts, Instagram scoring, catalog plan, ERC-8021 round-trip, x402 challenge, transfer receipt, parallel payment replays on both rails. The x402 challenge test calls the hosted facilitator, so it needs network | No |
+| `npm run typecheck` | Worker and frontend type checks | No |
+| `npm run build` | Builds the React pages and static files into `dist/` | No |
 | `npm run check:dry -- @handle` | Prints a practice verdict | No |
 | `npm run db:migrate:local` | Applies D1 migrations to the local database | No |
-| `npm run dev` | Worker on localhost. Practice mode unless `DRY_RUN=false` | No, while `DRY_RUN=true` |
+| `npm run dev` | Builds, then runs the Worker on localhost. Practice mode unless `DRY_RUN=false` | No, while `DRY_RUN=true` |
 | `npm run register:8004 -- --dry-run` | Prints the tagged `register` transaction. Already broadcast; see the tx above | No |
 | `npm run db:migrate` | Applies D1 migrations to the remote database | No |
-| `npm run deploy` | Deploys to Cloudflare Workers | Deploy only |
+| `npm run deploy` | Builds, then deploys to Cloudflare Workers | Deploy only |
 
 To take live payments from a fresh deploy:
 
@@ -428,7 +430,14 @@ Copy [`.env.example`](.env.example) to `.dev.vars` for local runs. Vars in `wran
 
 ```text
 pay-small-check/
-├── public/                    # mobile pages: check, /proof, /how-to, /about, terms, privacy, support
+├── web/                       # React pages: check (/) and proof (/proof)
+│   └── src/
+│       ├── check-app.tsx      # the check form and verdict
+│       ├── proof-app.tsx      # public receipts
+│       ├── components/ui/     # shadcn/ui components, copied from the official source
+│       ├── components/magicui/# Magic UI components, copied from the official source
+│       └── lib/pay.js         # wallet, x402 and transfer payment flow
+├── public/                    # static pages (how-to, about, terms, privacy, support), fonts, logo
 ├── src/
 │   ├── app.ts                 # HTTP API, both payment rails, payment reservation
 │   ├── check.ts               # catalog, then the six paid calls
