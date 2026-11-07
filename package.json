@@ -5,9 +5,9 @@
   "description": "Check an X vendor before you pay them. The agent buys real X data through buy on Celo and returns a Safe, Caution, or Risky verdict.",
   "type": "module",
   "scripts": {
-    "dev": "vite build && wrangler dev",
-    "deploy": "vite build && wrangler deploy",
-    "dry-run": "vite build && wrangler deploy --dry-run",
+    "dev": "wrangler dev --var DRY_RUN:true",
+    "deploy": "wrangler deploy",
+    "dry-run": "wrangler deploy --dry-run",
     "types": "wrangler types",
     "typecheck": "tsc --noEmit && tsc -p web",
     "test": "tsx --test test/**/*.test.ts",
