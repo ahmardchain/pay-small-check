@@ -1,142 +1,83 @@
+/* Text pages (about, how-to, terms, privacy, support). Same tokens and
+   type as the React pages, which use shadcn/ui's neutral theme. */
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
-  color-scheme: light;
-  --paper: #f3eadb;
-  --card: #fffaf2;
-  --ink: #1c1612;
-  --muted: #5e5348;
-  --line: #e4d5c0;
-  --green: #0c6b4f;
-  --green-deep: #084736;
-  --clay: #9a3412;
-  --amber: #8a5a12;
-  --stamp: #0c6b4f;
-  --shadow: 0 16px 40px rgba(70, 42, 18, 0.08);
-  font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+  color-scheme: light dark;
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.145 0 0);
+  --muted-foreground: oklch(0.47 0 0);
+  --border: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --muted-foreground: oklch(0.72 0 0);
+    --border: oklch(1 0 0 / 10%);
+    --ring: oklch(0.556 0 0);
+  }
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
+html, body { margin: 0; }
 body {
-  background:
-    radial-gradient(1200px 400px at 10% -10%, #fff 0%, transparent 50%),
-    var(--paper);
-  color: var(--ink);
-  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
-a { color: var(--green-deep); }
-button, input, select { font: inherit; }
-.wrap { width: min(440px, calc(100% - 28px)); margin: 0 auto; padding: 22px 0 48px; }
-.brand { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.brand h1 { font-size: 1.7rem; line-height: 1; margin: 0; letter-spacing: -0.03em; }
-.brand p, .lede { color: var(--muted); }
-.kicker {
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--green);
-  margin: 0 0 8px;
+a { color: inherit; text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid color-mix(in oklch, var(--ring) 50%, transparent); outline-offset: 2px; border-radius: 6px; }
+
+.wrap {
+  width: min(32rem, calc(100% - 32px));
+  margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) 0 calc(40px + env(safe-area-inset-bottom));
 }
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: var(--shadow);
-}
-.stack { display: grid; gap: 12px; }
-label { display: grid; gap: 6px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.92rem; }
-input, select {
-  width: 100%;
-  border: 1px solid var(--line);
-  background: #fff;
-  border-radius: 12px;
-  padding: 14px 12px;
-  color: var(--ink);
-}
-button.primary, a.primary {
-  display: block;
-  width: 100%;
-  text-align: center;
+.stack { display: grid; gap: 16px; }
+
+.kicker { margin: 0; }
+.kicker a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   text-decoration: none;
-  border: 0;
-  border-radius: 999px;
-  padding: 14px 16px;
-  background: var(--green);
-  color: #f6fff9;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-weight: 650;
 }
-button.primary:disabled { opacity: 0.6; }
-button.quiet {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  padding: 8px;
+.kicker a::before {
+  content: "";
+  width: 28px;
+  height: 28px;
+  background: url("/mark.svg") center / contain no-repeat;
 }
-.status {
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  min-height: 1.2em;
-  color: var(--muted);
-}
-.stamp {
-  width: 148px;
-  height: 148px;
-  margin: 8px auto;
-  border: 4px solid var(--stamp);
-  color: var(--stamp);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 700;
-  transform: rotate(-8deg);
-}
-.stamp.caution { --stamp: var(--amber); }
-.stamp.risky { --stamp: var(--clay); }
-.stamp small { letter-spacing: 0.08em; font-size: 0.68rem; }
-.signals { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-.signals li, .evidence li {
-  border-top: 1px solid var(--line);
-  padding-top: 8px;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.92rem;
-}
-.tone-good { color: var(--green-deep); }
-.tone-warn { color: var(--amber); }
-.tone-bad { color: var(--clay); }
-.evidence { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-.banner {
-  background: #fff4d6;
-  border: 1px solid #efd39a;
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.88rem;
-}
-.later { opacity: 0.85; }
+
+h1 { font-size: 2.25rem; line-height: 1.1; font-weight: 600; letter-spacing: -0.035em; margin: 16px 0 4px; }
+h2 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; margin: 8px 0 0; }
+p, li { color: var(--muted-foreground); max-width: 62ch; }
+p strong, li strong { color: var(--foreground); }
+ol, ul { padding-left: 1.3em; display: grid; gap: 8px; margin: 0; }
+
 .footer {
-  margin-top: 22px;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.82rem;
-  color: var(--muted);
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 14px;
+  gap: 0 16px;
 }
-.footer a { color: var(--muted); }
-.receipt {
-  border-top: 1px dashed var(--line);
-  padding-top: 10px;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.88rem;
-}
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.78rem; word-break: break-all; }
-h2 { font-size: 1.25rem; margin: 0 0 8px; }
-.page p { font-family: ui-sans-serif, system-ui, sans-serif; line-height: 1.45; }
-@media (min-width: 800px) {
-  .wrap { width: min(720px, calc(100% - 48px)); padding-top: 40px; }
-}
+.footer a { min-height: 44px; display: inline-flex; align-items: center; }
+.footer span { flex-basis: 100%; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em; overflow-wrap: anywhere; }

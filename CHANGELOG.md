@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- New frontend: the check and proof pages are React with shadcn/ui components and Magic UI effects, built with Vite into `dist/`. Payment code moved unchanged into `web/src/lib/pay.js`. New logo.
 - Instagram is a paid channel on the same $0.08 fee. The 6 Nov 2026 catalog quotes are $0.031, or $0.038 when a post shortcode adds the comment call.
 - Facebook is a disabled coming-soon choice and returns 501. An unsupported channel, including WhatsApp, returns 400.
 - One payment buys one check. Transfer hashes and x402 authorizations are reserved in D1 (`payment_claims`, migration `0002`) before the first paid buy call, so replays get `409` and spend nothing.

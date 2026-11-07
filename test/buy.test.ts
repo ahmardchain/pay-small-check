@@ -3,7 +3,7 @@ import test from "node:test";
 import { createBuyPayer } from "../src/lib/buy.js";
 import { CHECK_PLAN } from "../src/lib/capabilities.js";
 import { TOKENS } from "../src/lib/tokens.js";
-import { encodeHeader } from "../public/x402.js";
+import { encodeHeader } from "../web/src/lib/x402.js";
 
 const KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as const;
 const PLAN = CHECK_PLAN[0];

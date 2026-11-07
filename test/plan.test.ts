@@ -6,7 +6,7 @@ import { tagCalldata, taggedTransferData } from "../src/lib/attribution.js";
 import { ERC_8021_MARKER, fromDataSuffix } from "@celo/attribution-tags";
 import { encodeFunctionData } from "viem";
 import { ERC20_TRANSFER_ABI } from "../src/lib/attribution.js";
-import { buildAuthorization, buildPaymentPayload, selectRequirement, typedDataFor } from "../public/x402.js";
+import { buildAuthorization, buildPaymentPayload, selectRequirement, typedDataFor } from "../web/src/lib/x402.js";
 
 test("usd amounts stay in integer atomic units", () => {
   assert.equal(usdToAtomic("0.08", 6), 80_000n);
